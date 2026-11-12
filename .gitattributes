@@ -1,0 +1,12 @@
+* text=auto
+
+*.png binary
+*.ico binary
+
+*.ps1 text eol=crlf
+*.cs text
+*.xaml text
+*.json text
+*.md text
+*.csproj text
+*.manifest text

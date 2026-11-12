@@ -1,0 +1,47 @@
+<Window x:Class="HideyNotes.Windows.HandleWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="HideyNotes handle"
+        Width="48" Height="118"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ShowInTaskbar="False"
+        ShowActivated="False"
+        WindowStartupLocation="Manual"
+        Topmost="True"
+        UseLayoutRounding="True">
+
+    <Border Width="19"
+            Height="90"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Center"
+            CornerRadius="9,0,0,9"
+            BorderBrush="{DynamicResource HandleBorderBrush}"
+            BorderThickness="1,1,0,1"
+            Cursor="Hand"
+            MouseLeftButtonUp="OnClick">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="16" ShadowDepth="0" Opacity="0.5" Color="#000000" />
+        </Border.Effect>
+        <Border.Style>
+            <Style TargetType="Border">
+                <Setter Property="Background" Value="{DynamicResource HandleBrush}" />
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" Value="{DynamicResource HandleHoverBrush}" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+        </Border.Style>
+
+        <Border Width="2"
+                Height="36"
+                CornerRadius="1"
+                Background="{DynamicResource MutedBrush}"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Opacity="0.9" />
+    </Border>
+</Window>

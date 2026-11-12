@@ -1,0 +1,25 @@
+# Build output
+bin/
+obj/
+publish/
+*.user
+*.suo
+*.pdb
+
+# Runtime data written next to the exe in restricted environments
+HideyNotesData/
+SlideNotesData/
+AppData/
+
+# Diagnostics written next to the exe
+launch.txt
+crash.txt
+
+# IDEs
+.vs/
+.idea/
+*.DotSettings.user
+
+# OS
+Thumbs.db
+desktop.ini

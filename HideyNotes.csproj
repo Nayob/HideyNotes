@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <RootNamespace>HideyNotes</RootNamespace>
+    <AssemblyName>HideyNotes</AssemblyName>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\HideyNotes.ico</ApplicationIcon>
+    <DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
+    <StartupObject>HideyNotes.Program</StartupObject>
+    <AssemblyTitle>HideyNotes</AssemblyTitle>
+    <Product>HideyNotes</Product>
+    <Version>0.1.0</Version>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <!-- WFO0003: manifest DPI settings are correct for a WPF-first app. -->
+    <NoWarn>$(NoWarn);WFO0003</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\HideyNotes.ico" />
+    <Resource Include="Assets\AppIcon.png" />
+    <!-- LogicalName keeps them inside the main assembly: ru/en would look like satellite cultures. -->
+    <EmbeddedResource Include="Localization\Strings.ru.json"
+                      LogicalName="HideyNotes.Localization.Strings.ru.json"
+                      WithCulture="false" />
+    <EmbeddedResource Include="Localization\Strings.en.json"
+                      LogicalName="HideyNotes.Localization.Strings.en.json"
+                      WithCulture="false" />
+  </ItemGroup>
+
+</Project>
