@@ -376,10 +376,24 @@ namespace HideyNotes.Windows
 
         // ---------- search ----------
 
-        public void OpenSearch()
+        /// <summary>True while a shortcut is opening the search bar: the scope change is not a user action then.</summary>
+        private bool _openingSearch;
+
+        /// <summary>Opens the search bar; the scope is chosen by the shortcut that opened it.</summary>
+        public void OpenSearch(bool allTabs = false)
         {
             SearchBar.Visibility = Visibility.Visible;
-            if (ScopeHere.IsChecked != true && ScopeAll.IsChecked != true) ScopeHere.IsChecked = true;
+
+            _openingSearch = true;
+            try
+            {
+                if (allTabs) ScopeAll.IsChecked = true;
+                else ScopeHere.IsChecked = true;
+            }
+            finally
+            {
+                _openingSearch = false;
+            }
 
             var settings = App.Current.Settings;
             if (string.IsNullOrEmpty(SearchBox.Text) && settings.RememberSearch && !string.IsNullOrEmpty(settings.LastSearch))
@@ -456,7 +470,7 @@ namespace HideyNotes.Windows
 
         private void OnScopeChecked(object sender, RoutedEventArgs e)
         {
-            if (_loading) return;
+            if (_loading || _openingSearch) return;
             RunSearch(selectFirst: true);
         }
 
@@ -867,8 +881,15 @@ namespace HideyNotes.Windows
 
             if (ctrl && e.Key == Key.F)
             {
-                if (SearchOpen) CloseSearch();
-                else OpenSearch();
+                // Ctrl+F searches the current note, Ctrl+Shift+F searches every tab. With the bar
+                // already open the other combination only switches the scope; the same one closes.
+                var allTabs = shift;
+
+                if (!SearchOpen) OpenSearch(allTabs);
+                else if ((ScopeAll.IsChecked == true) == allTabs) CloseSearch();
+                else if (allTabs) ScopeAll.IsChecked = true;
+                else ScopeHere.IsChecked = true;
+
                 e.Handled = true;
                 return;
             }

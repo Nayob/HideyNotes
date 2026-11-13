@@ -74,7 +74,8 @@ Windows refuses the tray icon, HideyNotes falls back to a normal taskbar window.
 | `Ctrl+1…9` | jump to a tab by number |
 | `Alt+1…9` or `Ctrl+Alt+1…9` | same, if `Ctrl+1` is taken by another app |
 | `F2` or double click | rename the tab |
-| `Ctrl+F` | search; `Enter` / `F3` next match, `Shift+F3` previous; `Esc` closes the search |
+| `Ctrl+F` | search the current note; `Enter` / `F3` next match, `Shift+F3` previous; `Esc` closes the search |
+| `Ctrl+Shift+F` | search every tab; with the search open the other shortcut switches the scope |
 | `Ctrl+H` | history window; press again to close it |
 | `Ctrl+F` in the history window | search closed notes and the trash |
 | `Ctrl+S` | save the note as `.txt` (dialog) |
@@ -228,7 +229,8 @@ HideyNotes откатывается в обычное окно с кнопкой
 | `Ctrl+1…9` | перейти к вкладке по номеру |
 | `Alt+1…9` или `Ctrl+Alt+1…9` | то же, если `Ctrl+1` занят другим приложением |
 | `F2` или двойной клик | переименовать вкладку |
-| `Ctrl+F` | поиск; `Enter` / `F3` — следующее совпадение, `Shift+F3` — предыдущее, `Esc` — закрыть |
+| `Ctrl+F` | поиск в текущей заметке; `Enter` / `F3` — следующее совпадение, `Shift+F3` — предыдущее, `Esc` — закрыть |
+| `Ctrl+Shift+F` | поиск по всем заметкам; при открытом поиске другая комбинация переключает область |
 | `Ctrl+H` | окно истории; повторное нажатие закрывает |
 | `Ctrl+F` в окне истории | поиск по закрытым заметкам и корзине |
 | `Ctrl+S` | сохранить заметку в `.txt` (диалог) |
