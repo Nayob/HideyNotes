@@ -16,7 +16,7 @@
     <StartupObject>HideyNotes.Program</StartupObject>
     <AssemblyTitle>HideyNotes</AssemblyTitle>
     <Product>HideyNotes</Product>
-    <Version>0.1.0</Version>
+    <Version>0.1.1</Version>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
     <!-- WFO0003: manifest DPI settings are correct for a WPF-first app. -->
     <NoWarn>$(NoWarn);WFO0003</NoWarn>
