@@ -46,6 +46,11 @@
                                Margin="0,0,7,0"
                                RenderOptions.BitmapScalingMode="HighQuality" />
                         <TextBlock Text="HideyNotes" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" />
+                        <TextBlock x:Name="VersionText"
+                                   FontSize="10"
+                                   VerticalAlignment="Center"
+                                   Margin="6,1,0,0"
+                                   Foreground="{DynamicResource MutedBrush}" />
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                         <Button x:Name="HelpButton"

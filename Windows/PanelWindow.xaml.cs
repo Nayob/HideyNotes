@@ -82,6 +82,7 @@ namespace HideyNotes.Windows
         {
             InitializeComponent();
             DataContext = Store;
+            SetVersionLabel();
             FontBox.ItemsSource = _fontChoices;
 
             SourceInitialized += OnSourceInitialized;
@@ -144,6 +145,28 @@ namespace HideyNotes.Windows
 
             _broadcastMessage = Native.RegisterWindowMessage("HIDEYNOTES_Activate");
             App.Current.Controller?.AttachPanelHandle(_hwnd);
+        }
+
+        /// <summary>
+        /// Shows the version next to the title. The tooltip carries the full product version,
+        /// including the build's commit hash, which is what a bug report needs.
+        /// </summary>
+        private void SetVersionLabel()
+        {
+            var version = typeof(PanelWindow).Assembly.GetName().Version;
+            VersionText.Text = version is null ? string.Empty : $"v{version.Major}.{version.Minor}.{version.Build}";
+
+            try
+            {
+                var product = System.Diagnostics.FileVersionInfo
+                    .GetVersionInfo(Environment.ProcessPath ?? string.Empty).ProductVersion;
+
+                if (!string.IsNullOrWhiteSpace(product)) VersionText.ToolTip = product;
+            }
+            catch
+            {
+                // the label is cosmetic: a missing tooltip is not worth a log entry
+            }
         }
 
         private void ApplyBackdrop()
