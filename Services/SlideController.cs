@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
@@ -45,6 +46,7 @@ namespace HideyNotes.Services
         private double _from;
         private double _to;
         private bool _animating;
+        private bool _canSlide = true;
         private bool _handleVisible = true;
         private bool _disposed;
         private bool _inLayout;
@@ -74,16 +76,15 @@ namespace HideyNotes.Services
 
         public void Initialize()
         {
-            // Create the windows without showing them. The layout below parks both windows and
-            // then moves them off-screen; a visible window would be painted at those in-between
-            // positions, which is exactly the rectangle that flickers in the middle of the screen.
+            // Create the windows without showing them: the geometry below is computed before the
+            // first paint, so the panel is never drawn at an intermediate position.
             _panelHwnd = new WindowInteropHelper(_panel).EnsureHandle();
             _handleHwnd = new WindowInteropHelper(_handle).EnsureHandle();
 
             _panel.DpiChanged += OnDpiChanged;
             _handle.DpiChanged += OnDpiChanged;
 
-            // Size everything for the target monitor, then slide the panel out of sight.
+            // Lay out for the target monitor, then park the panel out of sight.
             _progress = 1;
             RefreshLayout();
             _progress = 0;
@@ -91,6 +92,10 @@ namespace HideyNotes.Services
 
             _panel.Show();
             _handle.Show();
+
+            // Showing a window makes it visible, so the closed state has to be applied again:
+            // with another monitor next to the work area the panel is hidden as a whole.
+            ApplyFrame(_progress);
 
             ApplyAlwaysOnTop();
             _handle.SetOpen(false);
@@ -140,33 +145,26 @@ namespace HideyNotes.Services
                 _panelScale = scale;
                 _handleScale = scale;
 
-                // Windows only has to settle the DPI of the target monitor when the window is not
-                // there yet. On a single monitor (or on any monitor with the same scale) the window
-                // already has the right DPI, and moving it to the middle of the screen for nothing
-                // would be visible: the panel is not hidden while it is parked off-screen.
-                var windowDpi = Native.GetDpiForWindow(_panelHwnd);
-                var park = windowDpi != targetDpi;
-
-                // Park with both windows invisible: a hidden window is not composed by the desktop,
-                // so the jump across the screen cannot be painted, not even for a single frame.
-                var hidePanel = park && Native.IsWindowVisible(_panelHwnd) && !_panel.IsActive;
-                var hideHandle = park && _handleVisible && Native.IsWindowVisible(_handleHwnd) && !_panel.IsActive;
+                // The panel window always lives on the target monitor, so it only has to be moved
+                // when the target monitor itself changed (the panel follows the cursor in "auto"
+                // mode). Deciding that by the window's DPI is wrong: a window that sits on no
+                // monitor at all reports the system DPI, which can differ from every monitor.
+                var windowMonitor = Native.MonitorOfWindow(_panelHwnd);
+                var targetMonitor = Native.MonitorAt(centreX, centreY);
+                var park = windowMonitor != targetMonitor;
 
                 try
                 {
-                    if (hidePanel) Native.ShowWindow(_panelHwnd, Native.SW_HIDE);
-                    if (hideHandle) Native.ShowWindow(_handleHwnd, Native.SW_HIDE);
-
                     if (park)
                     {
-                        Log.Info($"park for dpi {windowDpi}->{targetDpi} hidden={hidePanel}/{hideHandle}");
+                        // Move it as a one-pixel window at the place it will occupy anyway, so the
+                        // trip to the target monitor cannot be seen, and the monitor settles the DPI
+                        // before the size below is worked out.
+                        Log.Info($"park: monitor 0x{windowMonitor.ToInt64():X} -> 0x{targetMonitor.ToInt64():X}, " +
+                                 $"dpi {Native.GetDpiForWindow(_panelHwnd)} -> {targetDpi}");
 
-                        Native.SetWindowPos(_panelHwnd, Native.HWND_TOPMOST,
-                            centreX - _panelWidth / 2, centreY - _panelHeight / 2, 0, 0,
-                            Native.SWP_NOSIZE | Native.SWP_NOACTIVATE);
-                        Native.SetWindowPos(_handleHwnd, Native.HWND_TOPMOST,
-                            centreX, centreY - _handleHeight / 2, 0, 0,
-                            Native.SWP_NOSIZE | Native.SWP_NOACTIVATE);
+                        _panel.Width = 1 / scale;
+                        _panel.Left = (work.Right - 1) / scale;
                     }
 
                     _panelWidth = Math.Max(320, (int)Math.Round(Math.Min(
@@ -180,18 +178,24 @@ namespace HideyNotes.Services
                     _handleHeight = (int)Math.Round(118 * scale);
                     _handleTop = _panelTop + (_panelHeight - _handleHeight) / 2;
 
+                    // The panel hides just right of the work area, which only works when no other
+                    // monitor starts there: otherwise it would sit on that screen, and sliding would
+                    // drag it across a DPI border.
+                    var closedRect = new System.Drawing.Rectangle(_workRight, _panelTop, _panelWidth, _panelHeight);
+                    _canSlide = !Forms.Screen.AllScreens.Any(s => s.Bounds.IntersectsWith(closedRect));
+
+                    // WPF keeps its own idea of the window size; it has to agree with the pixel size
+                    // used below, otherwise a DPI change would resize the panel behind our back.
                     _panel.Width = _panelWidth / scale;
                     _panel.Height = _panelHeight / scale;
                     _handle.Width = _handleWidth / _handleScale;
                     _handle.Height = _handleHeight / _handleScale;
-
-                    ApplyFrame(_progress);
                 }
                 finally
                 {
-                    // Bring the windows back even if the layout above failed half-way through.
-                    if (hidePanel) Native.ShowWindow(_panelHwnd, Native.SW_SHOWNOACTIVATE);
-                    if (hideHandle) Native.ShowWindow(_handleHwnd, Native.SW_SHOWNOACTIVATE);
+                    // Puts the panel in its final place and applies the current reveal, also if the
+                    // layout above failed half-way through.
+                    ApplyFrame(_progress);
                 }
 
                 var key = $"{screen.DeviceName}|{work.Width}x{work.Height}|{_panelWidth}x{_panelHeight}|{_panelScale:0.##}";
@@ -236,28 +240,46 @@ namespace HideyNotes.Services
         /// <summary>A monitor was added, removed or rescaled: follow it.</summary>
         private void OnDpiChanged(object? sender, System.Windows.DpiChangedEventArgs e)
         {
-            RefreshLayout();
+            // The geometry comes from the target monitor, not from the window, and the window only
+            // changes DPI when it is moved to another monitor. While the panel is closed there is
+            // nothing to recompute, and re-entering the layout from here would fight the animation.
+            if (_animating || _progress > 0.001) RefreshLayout();
         }
 
         private void ApplyFrame(double progress)
         {
-            if (_panelHwnd == IntPtr.Zero) return;
+            if (_panelHwnd == IntPtr.Zero || _panelWidth <= 0) return;
 
             progress = Math.Clamp(progress, 0, 1);
-            var x = _workRight - (int)Math.Round(_panelWidth * progress);
-            var handleX = x - _handleWidth;
+            var visible = (int)Math.Round(_panelWidth * progress);
 
-            var insertAfter = Native.HWND_TOPMOST;
+            if (_canSlide)
+            {
+                var x = _workRight - visible;
 
-            // The size is applied here as well: a window that just moved to a monitor with
-            // another DPI keeps its old pixel size until it is laid out again, and the panel
-            // has to be exactly half of the screen it lives on.
-            Native.SetWindowPos(_panelHwnd, insertAfter, x, _panelTop, _panelWidth, _panelHeight,
-                Native.SWP_NOACTIVATE);
+                // The size is applied here as well: a window that just moved to a monitor with
+                // another DPI keeps its old pixel size until it is laid out again, and the panel
+                // has to be exactly half of the screen it lives on.
+                Native.SetWindowPos(_panelHwnd, Native.HWND_TOPMOST, x, _panelTop, _panelWidth, _panelHeight,
+                    Native.SWP_NOACTIVATE);
+            }
+            else
+            {
+                // Another monitor starts where the panel would be hidden, so there is nothing to
+                // slide into: it stays in its place and is shown or hidden as a whole. No move means
+                // no DPI flips and nothing ever appears on the neighbouring screen.
+                Native.SetWindowPos(_panelHwnd, Native.HWND_TOPMOST, _workRight - _panelWidth, _panelTop,
+                    _panelWidth, _panelHeight, Native.SWP_NOACTIVATE);
+
+                var visibleNow = Native.IsWindowVisible(_panelHwnd);
+                if (progress <= 0.001 && visibleNow) Native.ShowWindow(_panelHwnd, Native.SW_HIDE);
+                else if (progress > 0.001 && !visibleNow) Native.ShowWindow(_panelHwnd, Native.SW_SHOWNOACTIVATE);
+            }
 
             if (!_handleVisible) return;
 
-            Native.SetWindowPos(_handleHwnd, insertAfter, handleX, _handleTop, _handleWidth, _handleHeight,
+            var handleX = _workRight - visible - _handleWidth;
+            Native.SetWindowPos(_handleHwnd, Native.HWND_TOPMOST, handleX, _handleTop, _handleWidth, _handleHeight,
                 Native.SWP_NOACTIVATE);
         }
 
@@ -268,7 +290,9 @@ namespace HideyNotes.Services
             _from = _progress;
             _to = target;
 
-            if (Math.Abs(_from - _to) < 0.0001)
+            // Without room next to the work area the panel cannot slide; a jump instead of a slide
+            // keeps the window from ever crossing into another monitor.
+            if (!_canSlide || Math.Abs(_from - _to) < 0.0001)
             {
                 _progress = _to;
                 ApplyFrame(_progress);

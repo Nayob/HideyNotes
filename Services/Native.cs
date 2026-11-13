@@ -118,6 +118,20 @@ namespace HideyNotes.Services
         [DllImport("user32.dll")]
         private static extern IntPtr MonitorFromPoint(POINT point, uint flags);
 
+        [DllImport("user32.dll")]
+        private static extern IntPtr MonitorFromWindow(IntPtr hwnd, uint flags);
+
+        /// <summary>The monitor a point belongs to.</summary>
+        public static IntPtr MonitorAt(int x, int y) =>
+            MonitorFromPoint(new POINT { X = x, Y = y }, MONITOR_DEFAULTTONEAREST);
+
+        /// <summary>
+        /// The monitor a window belongs to. For a window that is not on any monitor this is the
+        /// closest one, which is what the layout has to assume.
+        /// </summary>
+        public static IntPtr MonitorOfWindow(IntPtr hwnd) =>
+            MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+
         [DllImport("shcore.dll")]
         private static extern int GetDpiForMonitor(IntPtr monitor, int dpiType, out uint dpiX, out uint dpiY);
 
