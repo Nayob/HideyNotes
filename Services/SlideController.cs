@@ -74,21 +74,23 @@ namespace HideyNotes.Services
 
         public void Initialize()
         {
-            _panel.Show();
-            _handle.Show();
-
-            _panelHwnd = new WindowInteropHelper(_panel).Handle;
-            _handleHwnd = new WindowInteropHelper(_handle).Handle;
+            // Create the windows without showing them. The layout below parks both windows and
+            // then moves them off-screen; a visible window would be painted at those in-between
+            // positions, which is exactly the rectangle that flickers in the middle of the screen.
+            _panelHwnd = new WindowInteropHelper(_panel).EnsureHandle();
+            _handleHwnd = new WindowInteropHelper(_handle).EnsureHandle();
 
             _panel.DpiChanged += OnDpiChanged;
             _handle.DpiChanged += OnDpiChanged;
 
             // Size everything for the target monitor, then slide the panel out of sight.
             _progress = 1;
-            ApplyFrame(1);
             RefreshLayout();
             _progress = 0;
             ApplyFrame(0);
+
+            _panel.Show();
+            _handle.Show();
 
             ApplyAlwaysOnTop();
             _handle.SetOpen(false);
@@ -131,37 +133,66 @@ namespace HideyNotes.Services
 
                 // The scale belongs to the target monitor, so ask the monitor itself: the window
                 // reports its old DPI until it has actually landed on the new screen.
-                var scale = Math.Max(1.0, Native.MonitorDpiAt(work.Left + work.Width / 2, work.Top + work.Height / 2) / 96.0);
+                var centreX = work.Left + work.Width / 2;
+                var centreY = work.Top + work.Height / 2;
+                var targetDpi = Math.Max(96u, Native.MonitorDpiAt(centreX, centreY));
+                var scale = targetDpi / 96.0;
                 _panelScale = scale;
                 _handleScale = scale;
 
-                // Park both windows in the middle of the target monitor to settle its DPI.
-                var centreX = work.Left + work.Width / 2;
-                var centreY = work.Top + work.Height / 2;
-                Native.SetWindowPos(_panelHwnd, Native.HWND_TOPMOST,
-                    centreX - _panelWidth / 2, centreY - _panelHeight / 2, 0, 0,
-                    Native.SWP_NOSIZE | Native.SWP_NOACTIVATE);
-                Native.SetWindowPos(_handleHwnd, Native.HWND_TOPMOST,
-                    centreX, centreY - _handleHeight / 2, 0, 0,
-                    Native.SWP_NOSIZE | Native.SWP_NOACTIVATE);
+                // Windows only has to settle the DPI of the target monitor when the window is not
+                // there yet. On a single monitor (or on any monitor with the same scale) the window
+                // already has the right DPI, and moving it to the middle of the screen for nothing
+                // would be visible: the panel is not hidden while it is parked off-screen.
+                var windowDpi = Native.GetDpiForWindow(_panelHwnd);
+                var park = windowDpi != targetDpi;
 
-                _panelWidth = Math.Max(320, (int)Math.Round(Math.Min(
-                    work.Width * _settings.PanelWidthRatio, MaxPanelWidthDip * scale)));
-                _panelHeight = Math.Max(240, (int)Math.Round(Math.Min(
-                    work.Height * _settings.PanelHeightRatio, MaxPanelHeightDip * scale)));
-                _panelTop = work.Top + (int)Math.Round((work.Height - _panelHeight) / 2.0);
-                _workRight = work.Right;
+                // Park with both windows invisible: a hidden window is not composed by the desktop,
+                // so the jump across the screen cannot be painted, not even for a single frame.
+                var hidePanel = park && Native.IsWindowVisible(_panelHwnd) && !_panel.IsActive;
+                var hideHandle = park && _handleVisible && Native.IsWindowVisible(_handleHwnd) && !_panel.IsActive;
 
-                _handleWidth = (int)Math.Round(48 * scale);
-                _handleHeight = (int)Math.Round(118 * scale);
-                _handleTop = _panelTop + (_panelHeight - _handleHeight) / 2;
+                try
+                {
+                    if (hidePanel) Native.ShowWindow(_panelHwnd, Native.SW_HIDE);
+                    if (hideHandle) Native.ShowWindow(_handleHwnd, Native.SW_HIDE);
 
-                _panel.Width = _panelWidth / scale;
-                _panel.Height = _panelHeight / scale;
-                _handle.Width = _handleWidth / _handleScale;
-                _handle.Height = _handleHeight / _handleScale;
+                    if (park)
+                    {
+                        Log.Info($"park for dpi {windowDpi}->{targetDpi} hidden={hidePanel}/{hideHandle}");
 
-                ApplyFrame(_progress);
+                        Native.SetWindowPos(_panelHwnd, Native.HWND_TOPMOST,
+                            centreX - _panelWidth / 2, centreY - _panelHeight / 2, 0, 0,
+                            Native.SWP_NOSIZE | Native.SWP_NOACTIVATE);
+                        Native.SetWindowPos(_handleHwnd, Native.HWND_TOPMOST,
+                            centreX, centreY - _handleHeight / 2, 0, 0,
+                            Native.SWP_NOSIZE | Native.SWP_NOACTIVATE);
+                    }
+
+                    _panelWidth = Math.Max(320, (int)Math.Round(Math.Min(
+                        work.Width * _settings.PanelWidthRatio, MaxPanelWidthDip * scale)));
+                    _panelHeight = Math.Max(240, (int)Math.Round(Math.Min(
+                        work.Height * _settings.PanelHeightRatio, MaxPanelHeightDip * scale)));
+                    _panelTop = work.Top + (int)Math.Round((work.Height - _panelHeight) / 2.0);
+                    _workRight = work.Right;
+
+                    _handleWidth = (int)Math.Round(48 * scale);
+                    _handleHeight = (int)Math.Round(118 * scale);
+                    _handleTop = _panelTop + (_panelHeight - _handleHeight) / 2;
+
+                    _panel.Width = _panelWidth / scale;
+                    _panel.Height = _panelHeight / scale;
+                    _handle.Width = _handleWidth / _handleScale;
+                    _handle.Height = _handleHeight / _handleScale;
+
+                    ApplyFrame(_progress);
+                }
+                finally
+                {
+                    // Bring the windows back even if the layout above failed half-way through.
+                    if (hidePanel) Native.ShowWindow(_panelHwnd, Native.SW_SHOWNOACTIVATE);
+                    if (hideHandle) Native.ShowWindow(_handleHwnd, Native.SW_SHOWNOACTIVATE);
+                }
 
                 var key = $"{screen.DeviceName}|{work.Width}x{work.Height}|{_panelWidth}x{_panelHeight}|{_panelScale:0.##}";
                 if (key != _layoutKey)

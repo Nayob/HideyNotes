@@ -12,6 +12,9 @@ namespace HideyNotes.Services
         public static readonly IntPtr HWND_TOP = IntPtr.Zero;
         public static readonly IntPtr HWND_BROADCAST = new IntPtr(0xffff);
 
+        public const int SW_HIDE = 0;
+        public const int SW_SHOWNOACTIVATE = 4;
+
         public const uint SWP_NOSIZE = 0x0001;
         public const uint SWP_NOMOVE = 0x0002;
         public const uint SWP_NOZORDER = 0x0004;
@@ -56,6 +59,12 @@ namespace HideyNotes.Services
 
         [DllImport("user32.dll", SetLastError = true)]
         public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int x, int y, int cx, int cy, uint flags);
+
+        [DllImport("user32.dll")]
+        public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+        [DllImport("user32.dll")]
+        public static extern bool IsWindowVisible(IntPtr hWnd);
 
         [DllImport("user32.dll")]
         public static extern IntPtr GetForegroundWindow();
