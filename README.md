@@ -135,7 +135,7 @@ By default everything is in `%LOCALAPPDATA%\HideyNotes\`:
 | `notes\<id>.txt` | the notes themselves — one plain text file per note |
 | `trash\*.json` | notes deleted from history (kept 30 days) |
 | `lang\*.json` | extra interface languages |
-| `log.txt` | diagnostic log (helps when reporting a bug) |
+| `log.txt` | errors only; the full diagnostic log is written when `HIDEYNOTES_LOG=1` is set |
 
 If that folder is not writable (locked-down profile, sandbox), the app falls back to
 `<exe folder>\HideyNotesData\` and then to `%TEMP%\HideyNotes\`.
@@ -291,7 +291,7 @@ HideyNotes откатывается в обычное окно с кнопкой
 | `notes\<id>.txt` | сами заметки — один обычный текстовый файл на заметку |
 | `trash\*.json` | заметки, удалённые из истории (хранятся 30 дней) |
 | `lang\*.json` | дополнительные языки интерфейса |
-| `log.txt` | диагностический лог (пригодится при сообщении об ошибке) |
+| `log.txt` | только ошибки; полный диагностический лог пишется, если задать `HIDEYNOTES_LOG=1` |
 
 Если папка недоступна для записи (закрытый профиль, песочница), приложение откатывается в
 `<папка с exe>\HideyNotesData\`, затем в `%TEMP%\HideyNotes\`.
