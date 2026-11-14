@@ -7,8 +7,9 @@ using System.Runtime.InteropServices;
 namespace HideyNotes
 {
     /// <summary>
-    /// Records the launch environment next to the exe. Needed because some locked-down
-    /// environments deny access to %LOCALAPPDATA% / %TEMP% and we must see why.
+    /// Records the launch environment next to the exe when HIDEYNOTES_LOG=1 is set. Needed because
+    /// some locked-down environments deny access to %LOCALAPPDATA% / %TEMP% and we must see why.
+    /// Never runs on a normal start: the install folder stays clean.
     /// </summary>
     internal static class LaunchProbe
     {

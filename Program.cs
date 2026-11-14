@@ -12,7 +12,9 @@ namespace HideyNotes
         {
             AppDomain.CurrentDomain.UnhandledException += (_, e) => CrashLog.Write(e.ExceptionObject as Exception);
 
-            LaunchProbe.Run(args);
+            // The probe writes a file next to the exe, so it is opt-in: the diagnostic log switch
+            // turns it on, while a normal start leaves the install folder untouched.
+            if (Environment.GetEnvironmentVariable("HIDEYNOTES_LOG") == "1") LaunchProbe.Run(args);
 
             try
             {
