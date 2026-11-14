@@ -396,6 +396,17 @@
                                        TextWrapping="Wrap"
                                        Margin="0,0,0,6" />
 
+                            <TextBlock Text="{DynamicResource Loc.panel.dockSide}" Style="{StaticResource FieldLabel}" Margin="0,10,0,7" />
+                            <WrapPanel Margin="0,0,0,4">
+                                <RadioButton x:Name="DockRight" Style="{StaticResource Segment}" GroupName="dock" Content="{DynamicResource Loc.panel.dockSide.right}" Tag="right" Checked="OnDockSideChecked" />
+                                <RadioButton x:Name="DockLeft" Style="{StaticResource Segment}" GroupName="dock" Content="{DynamicResource Loc.panel.dockSide.left}" Tag="left" Checked="OnDockSideChecked" />
+                            </WrapPanel>
+                            <TextBlock Text="{DynamicResource Loc.panel.dockSide.hint}"
+                                       FontSize="10.5"
+                                       Foreground="{DynamicResource MutedBrush}"
+                                       TextWrapping="Wrap"
+                                       Margin="0,0,0,6" />
+
                             <TextBlock Text="{DynamicResource Loc.panel.theme}" Style="{StaticResource FieldLabel}" Margin="0,10,0,7" />
                             <WrapPanel Margin="0,0,0,6">
                                 <RadioButton x:Name="ThemeSystem" Style="{StaticResource Segment}" GroupName="theme" Content="{DynamicResource Loc.panel.theme.system}" Tag="system" Checked="OnThemeChecked" />

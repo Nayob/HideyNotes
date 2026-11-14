@@ -13,7 +13,8 @@
         Topmost="True"
         UseLayoutRounding="True">
 
-    <Border Width="19"
+    <Border x:Name="Tab"
+            Width="19"
             Height="90"
             HorizontalAlignment="Right"
             VerticalAlignment="Center"

@@ -35,6 +35,7 @@ namespace HideyNotes.Services
         private IntPtr _handleHwnd;
 
         private int _workRight;
+        private int _workLeft;
         private int _panelTop;
         private int _panelWidth;
         private int _panelHeight;
@@ -124,6 +125,10 @@ namespace HideyNotes.Services
 
         // ---------- geometry ----------
 
+        /// <summary>The panel lives at the left edge of the work area instead of the right one.</summary>
+        private bool DockLeft =>
+            string.Equals(_settings.DockSide, "left", StringComparison.OrdinalIgnoreCase);
+
         /// <summary>
         /// Recomputes the geometry for the monitor the panel is meant to live on: the one chosen
         /// in the settings, or the one under the cursor when the choice is "auto".
@@ -168,7 +173,7 @@ namespace HideyNotes.Services
                                  $"dpi {Native.GetDpiForWindow(_panelHwnd)} -> {targetDpi}");
 
                         _panel.Width = 1 / scale;
-                        _panel.Left = (work.Right - 1) / scale;
+                        _panel.Left = DockLeft ? work.Left / scale : (work.Right - 1) / scale;
                     }
 
                     _panelWidth = Math.Max(320, (int)Math.Round(Math.Min(
@@ -177,15 +182,17 @@ namespace HideyNotes.Services
                         work.Height * _settings.PanelHeightRatio, MaxPanelHeightDip * scale)));
                     _panelTop = work.Top + (int)Math.Round((work.Height - _panelHeight) / 2.0);
                     _workRight = work.Right;
+                    _workLeft = work.Left;
 
                     _handleWidth = (int)Math.Round(48 * scale);
                     _handleHeight = (int)Math.Round(118 * scale);
                     _handleTop = _panelTop + (_panelHeight - _handleHeight) / 2;
 
-                    // The panel hides just right of the work area, which only works when no other
-                    // monitor starts there: otherwise it would sit on that screen, and sliding would
-                    // drag it across a DPI border.
-                    var closedRect = new System.Drawing.Rectangle(_workRight, _panelTop, _panelWidth, _panelHeight);
+                    // The panel hides just past the work area, which only works when no other
+                    // monitor starts there: otherwise it would sit on that screen, and sliding
+                    // would drag it across a DPI border.
+                    var closedX = DockLeft ? _workLeft - _panelWidth : _workRight;
+                    var closedRect = new System.Drawing.Rectangle(closedX, _panelTop, _panelWidth, _panelHeight);
                     _hasRoom = !Forms.Screen.AllScreens.Any(s => s.Bounds.IntersectsWith(closedRect));
 
                     // WPF keeps its own idea of the window size; it has to agree with the pixel size
@@ -194,6 +201,7 @@ namespace HideyNotes.Services
                     _panel.Height = _panelHeight / scale;
                     _handle.Width = _handleWidth / _handleScale;
                     _handle.Height = _handleHeight / _handleScale;
+                    _handle.SetOnLeft(DockLeft);
                 }
                 finally
                 {
@@ -202,13 +210,13 @@ namespace HideyNotes.Services
                     ApplyFrame(_progress);
                 }
 
-                var key = $"{screen.DeviceName}|{work.Width}x{work.Height}|{_panelWidth}x{_panelHeight}|{_panelScale:0.##}";
+                var key = $"{screen.DeviceName}|{work.Width}x{work.Height}|{_panelWidth}x{_panelHeight}|{_panelScale:0.##}|{_settings.DockSide}";
                 if (key != _layoutKey)
                 {
                     _layoutKey = key;
                     Log.Info($"layout: screen={screen.DeviceName} work={work.Width}x{work.Height} " +
                              $"panel={_panelWidth}x{_panelHeight} top={_panelTop} " +
-                             $"dpi={Native.GetDpiForWindow(_panelHwnd)} " +
+                             $"dpi={Native.GetDpiForWindow(_panelHwnd)} side={_settings.DockSide} " +
                              $"mode={(string.IsNullOrEmpty(_settings.MonitorDevice) ? "auto" : "fixed")} " +
                              $"transition={_settings.Transition}");
                 }
@@ -260,7 +268,7 @@ namespace HideyNotes.Services
 
             if (_hasRoom)
             {
-                var x = _workRight - visible;
+                var x = DockLeft ? _workLeft + visible - _panelWidth : _workRight - visible;
 
                 // The size is applied here as well: a window that just moved to a monitor with
                 // another DPI keeps its old pixel size until it is laid out again, and the panel
@@ -273,7 +281,8 @@ namespace HideyNotes.Services
                 // Another monitor starts where the panel would be hidden, so there is nothing to
                 // slide into: it stays in its place and is shown or hidden as a whole. No move means
                 // no DPI flips and nothing ever appears on the neighbouring screen.
-                Native.SetWindowPos(_panelHwnd, Native.HWND_TOPMOST, _workRight - _panelWidth, _panelTop,
+                var restX = DockLeft ? _workLeft : _workRight - _panelWidth;
+                Native.SetWindowPos(_panelHwnd, Native.HWND_TOPMOST, restX, _panelTop,
                     _panelWidth, _panelHeight, Native.SWP_NOACTIVATE);
 
                 var visibleNow = Native.IsWindowVisible(_panelHwnd);
@@ -283,7 +292,9 @@ namespace HideyNotes.Services
 
             if (!_handleVisible) return;
 
-            var handleX = _workRight - visible - _handleWidth;
+            // The tab sits next to the panel's edge: left of it when docked right, right of it when
+            // docked left, so it is always the first thing on the screen.
+            var handleX = DockLeft ? _workLeft + visible : _workRight - visible - _handleWidth;
             Native.SetWindowPos(_handleHwnd, Native.HWND_TOPMOST, handleX, _handleTop, _handleWidth, _handleHeight,
                 Native.SWP_NOACTIVATE);
         }
@@ -508,6 +519,9 @@ namespace HideyNotes.Services
             _handle.Topmost = true;
             ApplyFrame(_progress);
         }
+
+        /// <summary>The tab changed edge: rebuild the geometry at once, an open panel jumps over.</summary>
+        public void ApplyDockSide() => RefreshLayout();
 
         /// <summary>
         /// The pin in the header: while it is on, losing focus does not hide the panel. The state

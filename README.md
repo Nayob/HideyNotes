@@ -31,7 +31,7 @@ never gets in the way of other windows.
 
 - **Edge tab → slide-out panel.** 50% of the screen width and 70% of its height on any monitor
   (capped at 900 × 1000 DIP so it does not swallow half of a huge screen), with a 220 ms slide
-  animation.
+  animation. The tab and the panel can sit on the right or the left edge.
 - **Unlimited tabs** with drag-to-reorder, inline rename and match counters during search.
 - **Autosave.** Every tab is a plain `.txt` file under the data folder; drafts never get lost.
 - **Search** inside the current note or across all tabs (`Ctrl+F`), with highlighting and a tab
@@ -53,7 +53,8 @@ never gets in the way of other windows.
 
 1. Download the latest ZIP from the **Releases** page and unpack it anywhere (or build it
    yourself, see below).
-2. Run `HideyNotes.exe`. The app starts hidden: only a small tab at the right edge of the screen.
+2. Run `HideyNotes.exe`. The app starts hidden: only a small tab at the right edge of the screen
+   (the left one, if you pick that edge in the settings).
 3. Click the tab — or press `Ctrl+Shift+Space` — and the panel slides out.
 4. Type. The note is saved as you go; `Ctrl+S` exports it to a `.txt` file you choose.
 5. To close: click outside the panel, press `Esc`, or use the × in the header (that hides it, it
@@ -97,8 +98,9 @@ swatch, type a hex color (`#RRGGBB` or `#AARRGGBB`) or choose one in the system 
 
 **Behavior** — hide delay on focus loss (at once / 300 ms / 1 s / 3 s), appearance (slide / instant;
 with another monitor next to the panel the reveal is instant anyway, otherwise it would flicker
-across the DPI border), theme (system / light / dark), interface language, monitor (auto or a
-specific screen), global hotkey on/off, remember last search query, start with Windows.
+across the DPI border), screen edge (right / left; with another monitor on that edge the panel also
+appears instantly), theme (system / light / dark), interface language, monitor (auto or a specific
+screen), global hotkey on/off, remember last search query, start with Windows.
 
 "Never hide" is gone: the pin in the header does the same for the current session.
 
@@ -191,7 +193,7 @@ HideyNotes — лёгкий блокнот для быстрых мыслей, �
 
 - **Язычок у края → выдвижная панель.** 50% ширины и 70% высоты экрана на любом мониторе
   (с потолком 900 × 1000 DIP, чтобы панель не занимала пол-экрана на большом мониторе), выезд
-  за 220 мс.
+  за 220 мс. Язычок и панель могут жить у правого или левого края.
 - **Неограниченное число вкладок**: перетаскивание для порядка, переименование, счётчик
   совпадений при поиске.
 - **Автосохранение.** Каждая вкладка — отдельный `.txt` в папке данных, черновики не теряются.
@@ -214,7 +216,8 @@ HideyNotes — лёгкий блокнот для быстрых мыслей, �
 ## Как начать
 
 1. Скачай последний ZIP со страницы **Releases** и распакуй куда угодно (или собери сам, см. ниже).
-2. Запусти `HideyNotes.exe`. Приложение стартует скрытым: у правого края экрана только язычок.
+2. Запусти `HideyNotes.exe`. Приложение стартует скрытым: у правого края экрана только язычок
+   (если в настройках выбран левый край — у левого).
 3. Нажми на язычок — или `Ctrl+Shift+Space` — панель выедет.
 4. Пиши. Заметка сохраняется на ходу; `Ctrl+S` выгружает её в выбранный `.txt`.
 5. Закрыть панель: клик мимо, `Esc` или крестик в шапке (это скрытие, не выход). Выйти из
@@ -258,7 +261,8 @@ HideyNotes откатывается в обычное окно с кнопкой
 
 **Поведение** — задержка скрытия при потере фокуса (сразу / 300 мс / 1 с / 3 с), появление
 (выезд / мгновенно; если рядом с панелью начинается другой монитор, появление всё равно мгновенное
-— иначе панель мигала бы при переходе через границу масштаба), тема (системная / светлая / тёмная),
+— иначе панель мигала бы при переходе через границу масштаба), край экрана (справа / слева; если
+на этом краю другой монитор, панель тоже появляется мгновенно), тема (системная / светлая / тёмная),
 язык интерфейса, монитор (авто или конкретный экран), глобальная горячая клавиша вкл/выкл, помнить
 последний запрос поиска, запускать при входе в Windows.
 

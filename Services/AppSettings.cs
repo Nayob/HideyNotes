@@ -19,6 +19,9 @@ namespace HideyNotes.Services
         /// <summary>Device name of the monitor to live on; empty = the monitor under the cursor.</summary>
         public string MonitorDevice { get; set; } = "";
 
+        /// <summary>Which edge of that monitor the panel lives on: "right" (default) or "left".</summary>
+        public string DockSide { get; set; } = "right";
+
         // Behaviour
         public int HideDelayMs { get; set; } = 300;   // 0 = hide at once
         public bool HotkeyEnabled { get; set; } = true;

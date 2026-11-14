@@ -1241,6 +1241,10 @@ namespace HideyNotes.Windows
             TransitionSlide.IsChecked = !instant;
             TransitionInstant.IsChecked = instant;
 
+            var left = string.Equals(settings.DockSide, "left", StringComparison.OrdinalIgnoreCase);
+            DockLeft.IsChecked = left;
+            DockRight.IsChecked = !left;
+
             ThemeSystem.IsChecked = settings.Theme == "system";
             ThemeLight.IsChecked = settings.Theme == "light";
             ThemeDark.IsChecked = settings.Theme == "dark";
@@ -1305,6 +1309,23 @@ namespace HideyNotes.Windows
 
             App.Current.Settings.Transition = tag == "instant" ? "instant" : "slide";
             SettingsStore.Save(App.Current.Settings);
+        }
+
+        /// <summary>
+        /// Which screen edge the tab and the panel live on. The change is applied at once: an open
+        /// panel jumps to the other edge instead of animating across the screen.
+        /// </summary>
+        private void OnDockSideChecked(object sender, RoutedEventArgs e)
+        {
+            if (_loading || sender is not RadioButton { Tag: string tag }) return;
+
+            var settings = App.Current.Settings;
+            var side = tag == "left" ? "left" : "right";
+            if (string.Equals(settings.DockSide, side, StringComparison.OrdinalIgnoreCase)) return;
+
+            settings.DockSide = side;
+            SettingsStore.Save(settings);
+            App.Current.Controller?.ApplyDockSide();
         }
 
         private void OnThemeChecked(object sender, RoutedEventArgs e)
