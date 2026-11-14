@@ -31,18 +31,10 @@
     "panel.fontSize": "Size",
     "panel.lineSpacing": "Line spacing",
     "panel.padding": "Padding",
-    "panel.textColor": "Text color (current theme)",
-    "panel.textColor.theme": "as in theme",
-    "panel.textColor.light": "light",
-    "panel.textColor.gray": "gray",
-    "panel.textColor.dark": "dark",
-    "panel.textColor.blue": "blue",
-    "panel.textColor.green": "green",
-    "panel.textColor.orange": "orange",
-    "panel.textColor.red": "red",
-    "panel.textColor.violet": "violet",
+    "panel.textColor": "Text color",
     "panel.textColor.placeholder": "#RRGGBB — custom color",
     "panel.textColor.palette": "Palette…",
+    "panel.textColor.hint": "The color is set for the light and dark theme separately and is remembered. An empty field means the color from the theme.",
     "panel.textColor.invalid": "That color is not valid. Use #RRGGBB or #AARRGGBB, e.g. #2F6FEB.",
     "panel.hideDelay": "Hide when focus is lost",
     "panel.hideDelay.now": "At once",
@@ -52,7 +44,7 @@
     "panel.transition": "Appearance",
     "panel.transition.slide": "Slide",
     "panel.transition.instant": "Instant",
-    "panel.transition.hint": "Slide takes 220 ms. If another monitor starts where the panel hides, it appears instantly even in slide mode — otherwise it would flicker while crossing the DPI border.",
+    "panel.transition.hint": "Slide takes 220 ms. If another monitor starts where the panel hides, it appears instantly.",
     "panel.pin": "Pin the panel: it will not hide when it loses focus (until the app restarts)",
     "panel.pin.on": "Unpin: hide the panel on focus loss again",
     "panel.dockSide": "Screen edge",
@@ -110,6 +102,6 @@
     "note.help": "Help",
     "note.expiry": "deleted in {0} d",
 
-    "help.text": "HideyNotes — quick notes at the edge of the screen.\n\nPANEL\n• Ctrl+Shift+Space — show or hide the panel.\n• Clicking the tab at the right edge does the same.\n• Esc closes the search and the settings first, then hides the panel.\n• Ctrl+P opens or closes the settings — the same as the gear.\n• The panel hides itself when it loses focus; the delay is adjustable in the settings.\n• The pin in the header stops that hiding until the app restarts: the panel stays open while you work in other windows. The hotkey, Esc and the × still hide it.\n• The tab and the panel can live at the right or the left edge; "Screen edge" in the settings switches them.\n• To close the app completely use the tray icon or Ctrl+Q.\n• The settings can pin the panel to a specific monitor (by default — the one with the cursor).\n\nTABS\n• Ctrl+T — new note.\n• Ctrl+W — close the tab (the note goes to history).\n• Ctrl+Shift+W — close and forget, no history.\n• Ctrl+Shift+T — reopen the last closed one.\n• Ctrl+Tab and Ctrl+Shift+Tab — next and previous tab.\n• Ctrl+1…9 or Alt+1…9 — jump to a tab by number.\n• F2 or a double click on a tab — rename.\n• Tabs can be dragged with the mouse, a middle click closes one.\n\nSEARCH\n• Ctrl+F — open or close the search over the current note (the query is remembered).\n• Ctrl+Shift+F — the same but over every tab; with the search already open the other shortcut only switches the scope.\n• Enter or F3 — next match, Shift+F3 — previous one.\n• \"Note\" searches the current note, \"All\" searches every note; tabs without matches are hidden.\n\nSAVING\n• Ctrl+S or the button in the header — save the note as .txt.\n• Drafts are saved automatically, so nothing is lost when the app closes.\n\nHISTORY AND TRASH\n• Ctrl+H — open or close the window.\n• Ctrl+F in the history window — search titles and text (both closed notes and the trash).\n• \"Closed\" — tabs you closed. Restore them or move them to the trash.\n• \"Trash\" — notes deleted from the closed list. Put them back or delete them forever.\n• Notes live 30 days in both lists, then they are removed for good.\n• The \"Help\" tab never goes to history: closed means gone.\n\nSETTINGS\n• The gear in the header (or Ctrl+P): text (font, size, spacing, padding, color) and behavior (hiding, theme, language, monitor, hotkey, search memory).\n• F1 — open this help page."
+    "help.text": "HideyNotes — quick notes at the edge of the screen.\n\nPANEL\n• Ctrl+Shift+Space — show or hide the panel.\n• Clicking the tab at the right edge does the same.\n• Esc closes the search and the settings first, then hides the panel.\n• Ctrl+P opens or closes the settings — the same as the gear.\n• The panel hides itself when it loses focus; the delay is adjustable in the settings.\n• The pin in the header stops that hiding until the app restarts: the panel stays open while you work in other windows. The hotkey, Esc and the × still hide it.\n• The tab and the panel can live at the right or the left edge; the Screen edge setting switches them.\n• To close the app completely use the tray icon or Ctrl+Q.\n• The settings can pin the panel to a specific monitor (by default — the one with the cursor).\n\nTABS\n• Ctrl+T — new note.\n• Ctrl+W — close the tab (the note goes to history).\n• Ctrl+Shift+W — close and forget, no history.\n• Ctrl+Shift+T — reopen the last closed one.\n• Ctrl+Tab and Ctrl+Shift+Tab — next and previous tab.\n• Ctrl+1…9 or Alt+1…9 — jump to a tab by number.\n• F2 or a double click on a tab — rename.\n• Tabs can be dragged with the mouse, a middle click closes one.\n\nSEARCH\n• Ctrl+F — open or close the search over the current note (the query is remembered).\n• Ctrl+Shift+F — the same but over every tab; with the search already open the other shortcut only switches the scope.\n• Enter or F3 — next match, Shift+F3 — previous one.\n• \"Note\" searches the current note, \"All\" searches every note; tabs without matches are hidden.\n\nSAVING\n• Ctrl+S or the button in the header — save the note as .txt.\n• Drafts are saved automatically, so nothing is lost when the app closes.\n\nHISTORY AND TRASH\n• Ctrl+H — open or close the window.\n• Ctrl+F in the history window — search titles and text (both closed notes and the trash).\n• \"Closed\" — tabs you closed. Restore them or move them to the trash.\n• \"Trash\" — notes deleted from the closed list. Put them back or delete them forever.\n• Notes live 30 days in both lists, then they are removed for good.\n• The \"Help\" tab never goes to history: closed means gone.\n\nSETTINGS\n• The gear in the header (or Ctrl+P): text (font, size, spacing, padding, color) and behavior (hiding, theme, language, monitor, hotkey, search memory).\n• F1 — open this help page."
   }
 }

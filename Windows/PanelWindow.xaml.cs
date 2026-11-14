@@ -61,19 +61,6 @@ namespace HideyNotes.Windows
             return names;
         }
 
-        private static readonly (string Hex, string NameKey)[] Swatches =
-        {
-            ("", "panel.textColor.theme"),
-            ("#FFEAEBEF", "panel.textColor.light"),
-            ("#FFC8CBD2", "panel.textColor.gray"),
-            ("#FF191B1F", "panel.textColor.dark"),
-            ("#FF5E9DFF", "panel.textColor.blue"),
-            ("#FF48B36B", "panel.textColor.green"),
-            ("#FFE8A33D", "panel.textColor.orange"),
-            ("#FFE05C5C", "panel.textColor.red"),
-            ("#FF9B6BE0", "panel.textColor.violet")
-        };
-
         private NotesStore Store => App.Current.Notes;
 
         private bool SearchOpen => SearchBar.Visibility == Visibility.Visible;
@@ -247,7 +234,6 @@ namespace HideyNotes.Windows
 
             // The text colour is stored per theme, so the picker follows the switch.
             SyncHexBox();
-            BuildSwatches();
         }
 
         private void OnWindowClosing(object? sender, System.ComponentModel.CancelEventArgs e)
@@ -1459,7 +1445,6 @@ namespace HideyNotes.Windows
             FontSizeValue.Text = settings.FontSize.ToString("0.#", culture);
             LineHeightValue.Text = settings.LineHeight.ToString("0.0", culture);
             PaddingValue.Text = settings.EditorPadding.ToString("0", culture);
-            BuildSwatches();
             SyncHexBox();
         }
 
@@ -1483,7 +1468,6 @@ namespace HideyNotes.Windows
             else settings.TextColorLight = hex;
 
             ApplyTypography();
-            BuildSwatches();
             SyncHexBox();
             SettingsStore.Save(settings);
         }
@@ -1612,75 +1596,6 @@ namespace HideyNotes.Windows
             ApplyTypography();
             UpdateTypographyUi();
             SettingsStore.Save(settings);
-        }
-
-        private void BuildSwatches()
-        {
-            SwatchPanel.Children.Clear();
-
-            var settings = App.Current.Settings;
-            var current = App.Current.Theme.IsDark ? settings.TextColorDark : settings.TextColorLight;
-
-            var accent = (Brush)FindResource("AccentBrush");
-            var border = (Brush)FindResource("SegmentBorderBrush");
-
-            foreach (var (hex, nameKey) in Swatches)
-            {
-                var isSelected = string.Equals(current ?? string.Empty, hex, StringComparison.OrdinalIgnoreCase);
-
-                var swatch = new Border
-                {
-                    Width = 26,
-                    Height = 26,
-                    CornerRadius = new CornerRadius(13),
-                    BorderThickness = new Thickness(isSelected ? 2 : 1),
-                    BorderBrush = isSelected ? accent : border,
-                    Background = string.IsNullOrEmpty(hex) ? Brushes.Transparent : ParseBrush(hex),
-                    Margin = new Thickness(0, 0, 6, 6)
-                };
-
-                if (string.IsNullOrEmpty(hex))
-                {
-                    swatch.Child = new TextBlock
-                    {
-                        Text = "А",
-                        FontSize = 11,
-                        HorizontalAlignment = HorizontalAlignment.Center,
-                        VerticalAlignment = VerticalAlignment.Center
-                    };
-                }
-
-                var button = new Button
-                {
-                    Style = (Style)FindResource("SwatchButton"),
-                    Content = swatch,
-                    Tag = hex
-                };
-                button.ToolTip = Loc.T(nameKey);
-                button.Click += OnSwatchClick;
-                SwatchPanel.Children.Add(button);
-            }
-        }
-
-        private void OnSwatchClick(object sender, RoutedEventArgs e)
-        {
-            if (sender is not Button { Tag: string hex }) return;
-
-            var settings = App.Current.Settings;
-            if (App.Current.Theme.IsDark) settings.TextColorDark = hex;
-            else settings.TextColorLight = hex;
-
-            ApplyTypography();
-            BuildSwatches();
-            SyncHexBox();
-            SettingsStore.Save(settings);
-        }
-
-        private static Brush ParseBrush(string hex)
-        {
-            var brush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(hex));
-            brush.Freeze();
-            return brush;
         }
 
         // ---------- export ----------

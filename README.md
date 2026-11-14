@@ -45,8 +45,8 @@ never gets in the way of other windows.
   restarts, and the hotkey, `Esc` and the × still hide the panel.
 - **Defaults to English, ships with Russian**, additional languages by dropping a JSON file.
 - **Dark and light themes** following Windows, Mica backdrop on Windows 11.
-- **Typography settings**: font, size, line spacing, padding, text color (swatches, hex input or
-  the system color picker) — separately for dark and light theme.
+- **Typography settings**: font, size, line spacing, padding, text color (hex input or the system
+  color picker) — separately for dark and light theme, remembered per theme.
 - **Optional autostart** with Windows (per-user, no admin rights).
 
 ## Getting started
@@ -93,8 +93,9 @@ tab strip, tab shortcuts only walk through the visible tabs.
 
 Open them with the gear in the header (or the tray menu). Two pages:
 
-**Text** — font family, size, line spacing, padding, text color for the current theme: pick a
-swatch, type a hex color (`#RRGGBB` or `#AARRGGBB`) or choose one in the system palette dialog.
+**Text** — font family, size, line spacing, padding, text color: type a hex color (`#RRGGBB` or
+`#AARRGGBB`) or choose one in the system palette dialog. The color is stored for the light and the
+dark theme separately; an empty field means the theme color.
 
 **Behavior** — hide delay on focus loss (at once / 300 ms / 1 s / 3 s), appearance (slide / instant;
 with another monitor next to the panel the reveal is instant anyway, otherwise it would flicker
@@ -209,8 +210,8 @@ HideyNotes — лёгкий блокнот для быстрых мыслей, �
   программы, а хоткей, `Esc` и крестик по-прежнему её скрывают.
 - **По умолчанию английский, русский в комплекте**, другие языки — одним JSON-файлом.
 - **Тёмная и светлая темы** вслед за Windows, Mica-подложка на Windows 11.
-- **Настройки типографики**: шрифт, кегль, межстрочный интервал, отступы, цвет текста (кружки,
-  hex или системная палитра) — отдельно для тёмной и светлой темы.
+- **Настройки типографики**: шрифт, кегль, межстрочный интервал, отступы, цвет текста (hex или
+  системная палитра) — отдельно для тёмной и светлой темы и запоминается для каждой.
 - **Автозапуск с Windows** по желанию (для текущего пользователя, без прав администратора).
 
 ## Как начать
@@ -256,8 +257,9 @@ HideyNotes откатывается в обычное окно с кнопкой
 
 Открываются шестерёнкой в шапке (или из меню трея). Две страницы:
 
-**Текст** — шрифт, кегль, межстрочный интервал, отступы, цвет текста для текущей темы: кружок из
-палитры, hex (`#RRGGBB` или `#AARRGGBB`) или системный диалог выбора цвета.
+**Текст** — шрифт, кегль, межстрочный интервал, отступы, цвет текста: hex (`#RRGGBB` или
+`#AARRGGBB`) или системный диалог выбора цвета. Цвет хранится отдельно для светлой и тёмной темы;
+пустое поле — цвет из темы.
 
 **Поведение** — задержка скрытия при потере фокуса (сразу / 300 мс / 1 с / 3 с), появление
 (выезд / мгновенно; если рядом с панелью начинается другой монитор, появление всё равно мгновенное

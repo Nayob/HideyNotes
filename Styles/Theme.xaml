@@ -196,21 +196,6 @@
         </Setter>
     </Style>
 
-    <!-- ============ Swatch button ============ -->
-    <Style x:Key="SwatchButton" TargetType="Button">
-        <Setter Property="Background" Value="Transparent" />
-        <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="Cursor" Value="Hand" />
-        <Setter Property="Focusable" Value="False" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="Button">
-                    <ContentPresenter />
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-
     <!-- ============ Compact combo box ============ -->
     <Style x:Key="FlatComboItem" TargetType="ComboBoxItem">
         <Setter Property="Padding" Value="9,5" />

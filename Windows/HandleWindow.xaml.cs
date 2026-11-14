@@ -24,7 +24,7 @@ namespace HideyNotes.Windows
         {
             Tab.HorizontalAlignment = onLeft ? HorizontalAlignment.Left : HorizontalAlignment.Right;
             Tab.CornerRadius = onLeft ? new CornerRadius(0, 9, 9, 0) : new CornerRadius(9, 0, 0, 9);
-            Tab.BorderThickness = onLeft ? new Thickness(1, 1, 1, 0) : new Thickness(1, 1, 0, 1);
+            Tab.BorderThickness = onLeft ? new Thickness(0, 1, 1, 1) : new Thickness(1, 1, 0, 1);
         }
 
         public void SetOpen(bool open)
