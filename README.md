@@ -41,6 +41,8 @@ never gets in the way of other windows.
 - **Multi-monitor and per-monitor DPI.** The panel can follow the cursor or be pinned to a
   specific monitor and it adapts to that monitor's scaling.
 - **Global hotkey** (`Ctrl+Shift+Space` by default, can be disabled).
+- **Pin in the header** keeps the panel open while you work in other windows; it lasts until the app
+  restarts, and the hotkey, `Esc` and the × still hide the panel.
 - **Defaults to English, ships with Russian**, additional languages by dropping a JSON file.
 - **Dark and light themes** following Windows, Mica backdrop on Windows 11.
 - **Typography settings**: font, size, line spacing, padding, text color (swatches, hex input or
@@ -66,6 +68,7 @@ Windows refuses the tray icon, HideyNotes falls back to a normal taskbar window.
 | --- | --- |
 | `Ctrl+Shift+Space` | show / hide the panel |
 | `Esc` | close search or settings first, then hide the panel |
+| `Ctrl+P` | settings window; press again to close it |
 | `Ctrl+T` | new tab |
 | `Ctrl+W` | close the tab (it goes to history) |
 | `Ctrl+Shift+W` | close and forget (no history) |
@@ -92,9 +95,12 @@ Open them with the gear in the header (or the tray menu). Two pages:
 **Text** — font family, size, line spacing, padding, text color for the current theme: pick a
 swatch, type a hex color (`#RRGGBB` or `#AARRGGBB`) or choose one in the system palette dialog.
 
-**Behavior** — hide delay on focus loss (never / at once / 300 ms / 1 s / 3 s), theme
-(system / light / dark), interface language, monitor (auto or a specific screen), global hotkey
-on/off, remember last search query, start with Windows.
+**Behavior** — hide delay on focus loss (at once / 300 ms / 1 s / 3 s), appearance (slide / instant;
+with another monitor next to the panel the reveal is instant anyway, otherwise it would flicker
+across the DPI border), theme (system / light / dark), interface language, monitor (auto or a
+specific screen), global hotkey on/off, remember last search query, start with Windows.
+
+"Never hide" is gone: the pin in the header does the same for the current session.
 
 ## Languages
 
@@ -197,6 +203,8 @@ HideyNotes — лёгкий блокнот для быстрых мыслей, �
 - **Мультимониторность и разный DPI.** Панель может следовать за курсором или быть закреплённой
   за конкретным экраном и подстраивается под его масштаб.
 - **Глобальная горячая клавиша** (`Ctrl+Shift+Space` по умолчанию, можно отключить).
+- **Булавка в шапке** держит панель на виду, пока работаешь в других окнах; живёт до перезапуска
+  программы, а хоткей, `Esc` и крестик по-прежнему её скрывают.
 - **По умолчанию английский, русский в комплекте**, другие языки — одним JSON-файлом.
 - **Тёмная и светлая темы** вслед за Windows, Mica-подложка на Windows 11.
 - **Настройки типографики**: шрифт, кегль, межстрочный интервал, отступы, цвет текста (кружки,
@@ -221,6 +229,7 @@ HideyNotes откатывается в обычное окно с кнопкой
 | --- | --- |
 | `Ctrl+Shift+Space` | показать / скрыть панель |
 | `Esc` | сначала закрыть поиск или настройки, потом скрыть панель |
+| `Ctrl+P` | окно настроек; повторное нажатие закрывает |
 | `Ctrl+T` | новая вкладка |
 | `Ctrl+W` | закрыть вкладку (уходит в историю) |
 | `Ctrl+Shift+W` | закрыть и забыть (без истории) |
@@ -247,9 +256,13 @@ HideyNotes откатывается в обычное окно с кнопкой
 **Текст** — шрифт, кегль, межстрочный интервал, отступы, цвет текста для текущей темы: кружок из
 палитры, hex (`#RRGGBB` или `#AARRGGBB`) или системный диалог выбора цвета.
 
-**Поведение** — задержка скрытия при потере фокуса (никогда / сразу / 300 мс / 1 с / 3 с), тема
-(системная / светлая / тёмная), язык интерфейса, монитор (авто или конкретный экран), глобальная
-горячая клавиша вкл/выкл, помнить последний запрос поиска, запускать при входе в Windows.
+**Поведение** — задержка скрытия при потере фокуса (сразу / 300 мс / 1 с / 3 с), появление
+(выезд / мгновенно; если рядом с панелью начинается другой монитор, появление всё равно мгновенное
+— иначе панель мигала бы при переходе через границу масштаба), тема (системная / светлая / тёмная),
+язык интерфейса, монитор (авто или конкретный экран), глобальная горячая клавиша вкл/выкл, помнить
+последний запрос поиска, запускать при входе в Windows.
+
+Пункта «никогда» больше нет: то же самое на время сеанса делает булавка в шапке.
 
 ## Языки
 

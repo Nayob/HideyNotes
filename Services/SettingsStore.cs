@@ -54,6 +54,14 @@ namespace HideyNotes.Services
                 if (string.IsNullOrWhiteSpace(settings.Language)) settings.Language = AppSettings.EnglishCode;
                 settings.Schema = 4;
             }
+
+            // Schema 5 dropped "never hide": the pin in the header does the same per session, so a
+            // file written by an older version would otherwise keep a delay the settings cannot show.
+            if (settings.Schema < 5)
+            {
+                if (settings.HideDelayMs < 0) settings.HideDelayMs = 300;
+                settings.Schema = 5;
+            }
         }
 
         public static void Save(AppSettings settings)

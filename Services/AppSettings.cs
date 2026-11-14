@@ -7,7 +7,7 @@ namespace HideyNotes.Services
         /// <summary>Language used on a fresh install.</summary>
         public const string EnglishCode = "en";
 
-        public int Schema { get; set; } = 4;
+        public int Schema { get; set; } = 5;
 
         /// <summary>Interface language code; empty = follow Windows. English is the default.</summary>
         public string Language { get; set; } = EnglishCode;
@@ -20,8 +20,11 @@ namespace HideyNotes.Services
         public string MonitorDevice { get; set; } = "";
 
         // Behaviour
-        public int HideDelayMs { get; set; } = 300;   // -1 = never hide, 0 = hide at once
+        public int HideDelayMs { get; set; } = 300;   // 0 = hide at once
         public bool HotkeyEnabled { get; set; } = true;
+
+        /// <summary>How the panel reveals itself: "slide" (220 ms, the default) or "instant".</summary>
+        public string Transition { get; set; } = "slide";
         public string Hotkey { get; set; } = DefaultHotkey;
         public bool AutoStart { get; set; }
 

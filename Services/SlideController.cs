@@ -46,7 +46,8 @@ namespace HideyNotes.Services
         private double _from;
         private double _to;
         private bool _animating;
-        private bool _canSlide = true;
+        private bool _hasRoom = true;
+        private bool _pinned;
         private bool _handleVisible = true;
         private bool _disposed;
         private bool _inLayout;
@@ -71,6 +72,9 @@ namespace HideyNotes.Services
         public HotkeyService Hotkey => _hotkey;
 
         public bool IsOpen => _progress >= 0.999;
+
+        /// <summary>Pinned: losing focus no longer hides the panel (until the app restarts).</summary>
+        public bool IsPinned => _pinned;
 
         public bool IsAnimating => _animating;
 
@@ -182,7 +186,7 @@ namespace HideyNotes.Services
                     // monitor starts there: otherwise it would sit on that screen, and sliding would
                     // drag it across a DPI border.
                     var closedRect = new System.Drawing.Rectangle(_workRight, _panelTop, _panelWidth, _panelHeight);
-                    _canSlide = !Forms.Screen.AllScreens.Any(s => s.Bounds.IntersectsWith(closedRect));
+                    _hasRoom = !Forms.Screen.AllScreens.Any(s => s.Bounds.IntersectsWith(closedRect));
 
                     // WPF keeps its own idea of the window size; it has to agree with the pixel size
                     // used below, otherwise a DPI change would resize the panel behind our back.
@@ -205,7 +209,8 @@ namespace HideyNotes.Services
                     Log.Info($"layout: screen={screen.DeviceName} work={work.Width}x{work.Height} " +
                              $"panel={_panelWidth}x{_panelHeight} top={_panelTop} " +
                              $"dpi={Native.GetDpiForWindow(_panelHwnd)} " +
-                             $"mode={(string.IsNullOrEmpty(_settings.MonitorDevice) ? "auto" : "fixed")}");
+                             $"mode={(string.IsNullOrEmpty(_settings.MonitorDevice) ? "auto" : "fixed")} " +
+                             $"transition={_settings.Transition}");
                 }
             }
             finally
@@ -253,7 +258,7 @@ namespace HideyNotes.Services
             progress = Math.Clamp(progress, 0, 1);
             var visible = (int)Math.Round(_panelWidth * progress);
 
-            if (_canSlide)
+            if (_hasRoom)
             {
                 var x = _workRight - visible;
 
@@ -285,14 +290,22 @@ namespace HideyNotes.Services
 
         // ---------- animation ----------
 
+        /// <summary>
+        /// Whether the reveal is animated at all. Two things can turn it into a jump: the setting,
+        /// and the absence of room next to the work area (another monitor starts there).
+        /// </summary>
+        private bool SlideEnabled =>
+            _hasRoom && !string.Equals(_settings.Transition, "instant", StringComparison.OrdinalIgnoreCase);
+
         private void AnimateTo(double target)
         {
             _from = _progress;
             _to = target;
 
             // Without room next to the work area the panel cannot slide; a jump instead of a slide
-            // keeps the window from ever crossing into another monitor.
-            if (!_canSlide || Math.Abs(_from - _to) < 0.0001)
+            // keeps the window from ever crossing into another monitor. The same jump is used when
+            // the settings ask for an instant appearance.
+            if (!SlideEnabled || Math.Abs(_from - _to) < 0.0001)
             {
                 _progress = _to;
                 ApplyFrame(_progress);
@@ -436,6 +449,7 @@ namespace HideyNotes.Services
         public void NotifyPanelDeactivated()
         {
             if (_disposed) return;
+            if (_pinned) return;
             if (_panel.IsSettingsOpen || _panel.IsHistoryOpen) return;
             if (_progress < 0.5) return;
 
@@ -444,12 +458,13 @@ namespace HideyNotes.Services
 
         private void ScheduleHideIfFocusLost()
         {
+            if (_pinned) return;
+
             var foreground = Native.GetForegroundWindow();
             Native.GetWindowThreadProcessId(foreground, out var processId);
             if (processId == (uint)Environment.ProcessId) return; // our own popup / the handle window
 
-            var delay = _settings.HideDelayMs;
-            if (delay < 0) return;
+            var delay = Math.Max(0, _settings.HideDelayMs);
             Log.Info($"hide scheduled: fg={Native.Describe(foreground)} delay={delay}");
 
             if (delay == 0)
@@ -466,7 +481,7 @@ namespace HideyNotes.Services
         /// <summary>Safety net: catches focus losses the Deactivated event misses (dialogs, owner changes).</summary>
         private void OnFocusWatchTick(object? sender, EventArgs e)
         {
-            if (_disposed || _progress < 0.999) return;
+            if (_disposed || _pinned || _progress < 0.999) return;
             if (_panel.IsSettingsOpen || _panel.IsHistoryOpen) return;
             if (_hideTimer.IsEnabled) return;
 
@@ -476,6 +491,7 @@ namespace HideyNotes.Services
         private void OnHideTimerTick(object? sender, EventArgs e)
         {
             _hideTimer.Stop();
+            if (_pinned) return;
 
             var foreground = Native.GetForegroundWindow();
             Native.GetWindowThreadProcessId(foreground, out var processId);
@@ -491,6 +507,27 @@ namespace HideyNotes.Services
             _panel.Topmost = true;
             _handle.Topmost = true;
             ApplyFrame(_progress);
+        }
+
+        /// <summary>
+        /// The pin in the header: while it is on, losing focus does not hide the panel. The state
+        /// lives for the session only, so a pin forgotten yesterday cannot surprise the user today.
+        /// </summary>
+        public void SetPinned(bool pinned)
+        {
+            if (_pinned == pinned) return;
+            _pinned = pinned;
+            Log.Info($"pin: {pinned}");
+
+            if (pinned)
+            {
+                _hideTimer.Stop();
+                return;
+            }
+
+            // Unpinning does not hide anything by itself: it only puts the usual rule back, and
+            // that rule has to be evaluated right away in case the focus is elsewhere already.
+            if (_progress >= 0.999 && !_panel.IsSettingsOpen && !_panel.IsHistoryOpen) ScheduleHideIfFocusLost();
         }
 
         public void ApplyHotkey()

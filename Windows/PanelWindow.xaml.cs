@@ -894,6 +894,16 @@ namespace HideyNotes.Windows
                 return;
             }
 
+            if (ctrl && e.Key == Key.P)
+            {
+                // Same button as the gear: the second press closes the settings, like the hotkey.
+                if (IsSettingsOpen) CloseSettings();
+                else OpenSettings();
+
+                e.Handled = true;
+                return;
+            }
+
             if (ctrl && e.Key == Key.Q)
             {
                 App.Current.ExitApp();
@@ -1061,6 +1071,7 @@ namespace HideyNotes.Windows
         {
             HotkeyLabel.Text = Loc.F("panel.hotkey", App.Current.Settings.Hotkey);
             TrayHint.Text = App.Current.TrayAvailable ? Loc.T("panel.trayHint") : Loc.T("panel.trayUnavailable");
+            PinButton.ToolTip = Loc.T(PinButton.IsChecked == true ? "panel.pin.on" : "panel.pin");
 
             LoadMonitorChoices();
             LoadLanguageChoices();
@@ -1216,11 +1227,19 @@ namespace HideyNotes.Windows
         {
             var settings = App.Current.Settings;
 
-            DelayNever.IsChecked = settings.HideDelayMs < 0;
             DelayNow.IsChecked = settings.HideDelayMs == 0;
             Delay300.IsChecked = settings.HideDelayMs == 300;
             Delay1000.IsChecked = settings.HideDelayMs == 1000;
             Delay3000.IsChecked = settings.HideDelayMs >= 2000;
+
+            // The pin lives for one session only, so its state comes from the controller rather
+            // than from the settings file.
+            PinButton.IsChecked = App.Current.Controller?.IsPinned == true;
+            PinButton.ToolTip = Loc.T(PinButton.IsChecked == true ? "panel.pin.on" : "panel.pin");
+
+            var instant = string.Equals(settings.Transition, "instant", StringComparison.OrdinalIgnoreCase);
+            TransitionSlide.IsChecked = !instant;
+            TransitionInstant.IsChecked = instant;
 
             ThemeSystem.IsChecked = settings.Theme == "system";
             ThemeLight.IsChecked = settings.Theme == "light";
@@ -1265,6 +1284,26 @@ namespace HideyNotes.Windows
             if (!int.TryParse(tag, out var delay)) return;
 
             App.Current.Settings.HideDelayMs = delay;
+            SettingsStore.Save(App.Current.Settings);
+        }
+
+        /// <summary>
+        /// Pins the panel for this session: it keeps showing when it loses focus. The header button
+        /// only changes its fill, the decision itself is made by the controller.
+        /// </summary>
+        private void OnPinToggled(object sender, RoutedEventArgs e)
+        {
+            if (_loading) return;
+
+            App.Current.Controller?.SetPinned(PinButton.IsChecked == true);
+            PinButton.ToolTip = Loc.T(PinButton.IsChecked == true ? "panel.pin.on" : "panel.pin");
+        }
+
+        private void OnTransitionChecked(object sender, RoutedEventArgs e)
+        {
+            if (_loading || sender is not RadioButton { Tag: string tag }) return;
+
+            App.Current.Settings.Transition = tag == "instant" ? "instant" : "slide";
             SettingsStore.Save(App.Current.Settings);
         }
 
