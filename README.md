@@ -176,6 +176,8 @@ writable.
 
 MIT — see [LICENSE](LICENSE).
 
+<sub><i>Generated with love, under my careful supervision.</i></sub>
+
 ---
 
 # Русский
@@ -340,3 +342,5 @@ dotnet publish HideyNotes.csproj -c Release -r win-x64 --self-contained true ^
 ## Лицензия
 
 MIT — см. [LICENSE](LICENSE).
+
+<sub><i>Сгенерировано с любовью, под моим чутким руководством.</i></sub>
