@@ -1,15 +1,13 @@
 # HideyNotes
 
-A slide-out notepad that lives at the right edge of the screen. One click (or one hotkey) and a
+A slide-out notepad that lives at the edge of the screen. One click (or one hotkey) and a
 wide panel with all your tabs slides out, ready for quick notes.
 
 Windows 10/11 · x64 · portable, no installer · no admin rights · MIT license
 
 [English](#english) · [Русский](#русский)
 
-| Dark theme | Light theme |
-| :---: | :---: |
-| ![HideyNotes, dark theme](docs/panel-dark.png) | ![HideyNotes, light theme](docs/panel-light.png) |
+<p align="center"><img src="docs/demo.gif" width="720" alt="The panel slides out from the screen edge"></p>
 
 <p align="center"><img src="docs/history.png" width="360" alt="History and trash window"></p>
 
@@ -20,18 +18,19 @@ Windows 10/11 · x64 · portable, no installer · no admin rights · MIT license
 ## What it is
 
 HideyNotes is a lightweight notepad for quick ideas, numbers, snippets and reminders that appear
-out of nowhere. A small tab sits at the right edge of the screen; clicking it slides out a panel
-with as many tabs as you need. Everything is saved as you type — no "save" button, no accounts,
-no cloud, no background sync.
+out of nowhere. A small tab sits at the edge of the screen (on the right by default, on the left if
+you pick that edge); clicking it slides out a panel with as many tabs as you need. Everything is
+saved as you type — no "save" button, no accounts, no cloud, no background sync.
 
-The panel is always on top and hides itself when it loses focus (the delay is adjustable), so it
-never gets in the way of other windows.
+The panel is always on top and hides itself when it loses focus (the delay is adjustable, or pin it
+to keep the panel open), so it never gets in the way of other windows.
 
 ## Features
 
 - **Edge tab → slide-out panel.** 50% of the screen width and 70% of its height on any monitor
   (capped at 900 × 1000 DIP so it does not swallow half of a huge screen), with a 220 ms slide
-  animation. The tab and the panel can sit on the right or the left edge.
+  animation — or instant, if you prefer it that way. The tab and the panel can sit on the right or
+  the left edge.
 - **Unlimited tabs** with drag-to-reorder, inline rename and match counters during search.
 - **Autosave.** Every tab is a plain `.txt` file under the data folder; drafts never get lost.
 - **Search** inside the current note or across all tabs (`Ctrl+F`), with highlighting and a tab
@@ -98,10 +97,10 @@ Open them with the gear in the header (or the tray menu). Two pages:
 dark theme separately; an empty field means the theme color.
 
 **Behavior** — hide delay on focus loss (at once / 300 ms / 1 s / 3 s), appearance (slide / instant;
-with another monitor next to the panel the reveal is instant anyway, otherwise it would flicker
-across the DPI border), screen edge (right / left; with another monitor on that edge the panel also
-appears instantly), theme (system / light / dark), interface language, monitor (auto or a specific
-screen), global hotkey on/off, remember last search query, start with Windows.
+with another monitor on that side the reveal is instant anyway), screen edge (right / left; with
+another monitor on that edge the panel also appears instantly), theme (system / light / dark),
+interface language, monitor (auto or a specific screen), global hotkey on/off, remember last search
+query, start with Windows.
 
 "Never hide" is gone: the pin in the header does the same for the current session.
 
@@ -183,18 +182,19 @@ MIT — see [LICENSE](LICENSE).
 
 ## Что это
 
-HideyNotes — лёгкий блокнот для быстрых мыслей, чисел, заготовок и напоминаний. У правого края
-экрана висит маленький язычок; клик по нему выдвигает панель со всеми вкладками. Всё сохраняется
-по мере набора: ни кнопки «сохранить», ни аккаунтов, ни облака, ни фоновой синхронизации.
+HideyNotes — лёгкий блокнот для быстрых мыслей, чисел, заготовок и напоминаний. У края экрана
+висит маленький язычок (по умолчанию справа, слева — если выбрать этот край в настройках); клик по
+нему выдвигает панель со всеми вкладками. Всё сохраняется по мере набора: ни кнопки «сохранить», ни
+аккаунтов, ни облака, ни фоновой синхронизации.
 
-Панель всегда поверх остальных окон и сама прячется при потере фокуса (задержка настраивается),
-поэтому она не мешает работе.
+Панель всегда поверх остальных окон и сама прячется при потере фокуса (задержка настраивается, а
+булавка в шапке удерживает её открытой), поэтому она не мешает работе.
 
 ## Возможности
 
 - **Язычок у края → выдвижная панель.** 50% ширины и 70% высоты экрана на любом мониторе
   (с потолком 900 × 1000 DIP, чтобы панель не занимала пол-экрана на большом мониторе), выезд
-  за 220 мс. Язычок и панель могут жить у правого или левого края.
+  за 220 мс — или мгновенно, если так удобнее. Язычок и панель могут жить у правого или левого края.
 - **Неограниченное число вкладок**: перетаскивание для порядка, переименование, счётчик
   совпадений при поиске.
 - **Автосохранение.** Каждая вкладка — отдельный `.txt` в папке данных, черновики не теряются.
@@ -262,11 +262,10 @@ HideyNotes откатывается в обычное окно с кнопкой
 пустое поле — цвет из темы.
 
 **Поведение** — задержка скрытия при потере фокуса (сразу / 300 мс / 1 с / 3 с), появление
-(выезд / мгновенно; если рядом с панелью начинается другой монитор, появление всё равно мгновенное
-— иначе панель мигала бы при переходе через границу масштаба), край экрана (справа / слева; если
-на этом краю другой монитор, панель тоже появляется мгновенно), тема (системная / светлая / тёмная),
-язык интерфейса, монитор (авто или конкретный экран), глобальная горячая клавиша вкл/выкл, помнить
-последний запрос поиска, запускать при входе в Windows.
+(выезд / мгновенно; если на этом краю другой монитор, появление и так мгновенное), край экрана
+(справа / слева; если на этом краю другой монитор, панель тоже появляется мгновенно), тема
+(системная / светлая / тёмная), язык интерфейса, монитор (авто или конкретный экран), глобальная
+горячая клавиша вкл/выкл, помнить последний запрос поиска, запускать при входе в Windows.
 
 Пункта «никогда» больше нет: то же самое на время сеанса делает булавка в шапке.
 
