@@ -36,6 +36,7 @@ namespace HideyNotes.Windows
         private bool _historyClickThrough;
         private bool _suppressHistoryRefocus;
         private bool _panelClosing;
+        private bool _isPrinting;
 
         private List<int> _matches = new();
         private int _searchIndex = -1;
@@ -112,6 +113,9 @@ namespace HideyNotes.Windows
         }
 
         public bool IsSettingsOpen => SettingsLayer.Visibility == Visibility.Visible;
+
+        /// <summary>The print dialog is modal and takes the focus; the panel must stay put meanwhile.</summary>
+        public bool IsPrinting => _isPrinting;
 
         public bool IsHistoryOpen => _historyWindow is { IsLoaded: true };
 
@@ -977,7 +981,15 @@ namespace HideyNotes.Windows
 
             if (ctrl && e.Key == Key.P)
             {
-                // Same button as the gear: the second press closes the settings, like the hotkey.
+                // Ctrl+P prints, as in almost every other program. The settings moved to Alt+P.
+                PrintNote();
+                e.Handled = true;
+                return;
+            }
+
+            if (alt && key == Key.P)
+            {
+                // Same as the gear: the second press closes the settings.
                 if (IsSettingsOpen) CloseSettings();
                 else OpenSettings();
 
@@ -1730,6 +1742,37 @@ namespace HideyNotes.Windows
         }
 
         // ---------- export ----------
+
+        // ---------- print ----------
+
+        private void OnPrintClick(object sender, RoutedEventArgs e) => PrintNote();
+
+        private void PrintNote()
+        {
+            var note = Store.Active;
+            if (note is null) return;
+
+            _isPrinting = true;
+            try
+            {
+                var text = GetText();
+
+                // Test hook: render the printable pages as PNGs instead of opening the dialog.
+                var previewFolder = Environment.GetEnvironmentVariable("HIDEYNOTES_PRINT_PNG");
+                if (!string.IsNullOrWhiteSpace(previewFolder))
+                {
+                    var printable = PrintService.Build(note.Title, text, App.Current.Settings, 794, 1123);
+                    PrintService.RenderToPng(printable, previewFolder);
+                    return;
+                }
+
+                PrintService.Print(note.Title, text, App.Current.Settings);
+            }
+            finally
+            {
+                _isPrinting = false;
+            }
+        }
 
         private void OnSaveClick(object sender, RoutedEventArgs e) => SaveActiveNoteAs();
 

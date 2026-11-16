@@ -492,7 +492,7 @@ namespace HideyNotes.Services
         {
             if (_disposed) return;
             if (_pinned) return;
-            if (_panel.IsSettingsOpen || _panel.IsHistoryOpen) return;
+            if (_panel.IsSettingsOpen || _panel.IsHistoryOpen || _panel.IsPrinting) return;
             if (_progress < 0.5) return;
 
             ScheduleHideIfFocusLost();
@@ -524,7 +524,7 @@ namespace HideyNotes.Services
         private void OnFocusWatchTick(object? sender, EventArgs e)
         {
             if (_disposed || _pinned || _progress < 0.999) return;
-            if (_panel.IsSettingsOpen || _panel.IsHistoryOpen) return;
+            if (_panel.IsSettingsOpen || _panel.IsHistoryOpen || _panel.IsPrinting) return;
             if (_hideTimer.IsEnabled) return;
 
             ScheduleHideIfFocusLost();

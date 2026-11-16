@@ -33,6 +33,8 @@ to keep the panel open), so it never gets in the way of other windows.
   the left edge.
 - **Unlimited tabs** with drag-to-reorder, inline rename and match counters during search.
 - **Autosave.** Every tab is a plain `.txt` file under the data folder; drafts never get lost.
+- **Print** the current note (`Ctrl+P`): the printable copy is black on white with your font, and
+  paired with *Microsoft Print to PDF* it doubles as a PDF export.
 - **Search** inside the current note or across all tabs (`Ctrl+F`), with highlighting and a tab
   filter — and tab navigation follows the filtered tabs.
 - **History and trash.** Closed tabs can be restored, moved to the trash or deleted; both lists
@@ -68,7 +70,8 @@ Windows refuses the tray icon, HideyNotes falls back to a normal taskbar window.
 | --- | --- |
 | `Ctrl+Shift+Space` | show / hide the panel |
 | `Esc` | close search or settings first, then hide the panel |
-| `Ctrl+P` | settings window; press again to close it |
+| `Ctrl+P` | print the current note |
+| `Alt+P` | settings window; press again to close it |
 | `Ctrl+Shift+P` | pin / unpin the panel (the same as the header button) |
 | `Ctrl+T` | new tab |
 | `Ctrl+W` | close the tab (it goes to history) |
@@ -202,6 +205,8 @@ HideyNotes — лёгкий блокнот для быстрых мыслей, �
 - **Неограниченное число вкладок**: перетаскивание для порядка, переименование, счётчик
   совпадений при поиске.
 - **Автосохранение.** Каждая вкладка — отдельный `.txt` в папке данных, черновики не теряются.
+- **Печать** текущей заметки (`Ctrl+P`): на бумагу уходит чёрным по белому, вашим шрифтом, а в паре
+  с драйвером *Microsoft Print to PDF* это ещё и экспорт в PDF.
 - **Поиск** по текущей заметке или по всем вкладкам (`Ctrl+F`) с подсветкой и фильтром вкладок;
   переключение вкладок при этом ходит только по видимым.
 - **История и корзина.** Закрытые вкладки можно вернуть, убрать в корзину или удалить; в обоих
@@ -237,7 +242,8 @@ HideyNotes откатывается в обычное окно с кнопкой
 | --- | --- |
 | `Ctrl+Shift+Space` | показать / скрыть панель |
 | `Esc` | сначала закрыть поиск или настройки, потом скрыть панель |
-| `Ctrl+P` | окно настроек; повторное нажатие закрывает |
+| `Ctrl+P` | печать текущей заметки |
+| `Alt+P` | окно настроек; повторное нажатие закрывает |
 | `Ctrl+Shift+P` | закрепить / открепить панель (то же, что кнопка в шапке) |
 | `Ctrl+T` | новая вкладка |
 | `Ctrl+W` | закрыть вкладку (уходит в историю) |
