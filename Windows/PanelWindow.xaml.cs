@@ -966,10 +966,10 @@ namespace HideyNotes.Windows
                 return;
             }
 
-            if (ctrl && e.Key == Key.I)
+            if (ctrl && shift && e.Key == Key.P)
             {
-                // The editor is a plain-text document, so Ctrl+I has no italic to apply; marking
-                // the key handled also keeps the rich text editor from styling the selection.
+                // Ctrl+Shift+P pins the panel. Ctrl+I would be the obvious key, but the rich text
+                // editor still has the italic command on it.
                 TogglePin();
                 e.Handled = true;
                 return;

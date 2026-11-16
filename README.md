@@ -69,7 +69,7 @@ Windows refuses the tray icon, HideyNotes falls back to a normal taskbar window.
 | `Ctrl+Shift+Space` | show / hide the panel |
 | `Esc` | close search or settings first, then hide the panel |
 | `Ctrl+P` | settings window; press again to close it |
-| `Ctrl+I` | pin / unpin the panel (the same as the header button) |
+| `Ctrl+Shift+P` | pin / unpin the panel (the same as the header button) |
 | `Ctrl+T` | new tab |
 | `Ctrl+W` | close the tab (it goes to history) |
 | `Ctrl+Shift+W` | close and forget (no history) |
@@ -238,7 +238,7 @@ HideyNotes откатывается в обычное окно с кнопкой
 | `Ctrl+Shift+Space` | показать / скрыть панель |
 | `Esc` | сначала закрыть поиск или настройки, потом скрыть панель |
 | `Ctrl+P` | окно настроек; повторное нажатие закрывает |
-| `Ctrl+I` | закрепить / открепить панель (то же, что кнопка в шапке) |
+| `Ctrl+Shift+P` | закрепить / открепить панель (то же, что кнопка в шапке) |
 | `Ctrl+T` | новая вкладка |
 | `Ctrl+W` | закрыть вкладку (уходит в историю) |
 | `Ctrl+Shift+W` | закрыть и забыть (без истории) |
