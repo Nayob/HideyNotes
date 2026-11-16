@@ -22,6 +22,9 @@ namespace HideyNotes.Services
         /// <summary>Which edge of that monitor the panel lives on: "right" (default) or "left".</summary>
         public string DockSide { get; set; } = "right";
 
+        /// <summary>The tab at the edge; without it the panel opens with the hotkey or the tray.</summary>
+        public bool ShowHandle { get; set; } = true;
+
         // Behaviour
         public int HideDelayMs { get; set; } = 300;   // 0 = hide at once
         public bool HotkeyEnabled { get; set; } = true;

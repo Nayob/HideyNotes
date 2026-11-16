@@ -69,6 +69,7 @@ Windows refuses the tray icon, HideyNotes falls back to a normal taskbar window.
 | `Ctrl+Shift+Space` | show / hide the panel |
 | `Esc` | close search or settings first, then hide the panel |
 | `Ctrl+P` | settings window; press again to close it |
+| `Ctrl+I` | pin / unpin the panel (the same as the header button) |
 | `Ctrl+T` | new tab |
 | `Ctrl+W` | close the tab (it goes to history) |
 | `Ctrl+Shift+W` | close and forget (no history) |
@@ -81,6 +82,7 @@ Windows refuses the tray icon, HideyNotes falls back to a normal taskbar window.
 | `Ctrl+Shift+F` | search every tab; with the search open the other shortcut switches the scope |
 | `Ctrl+H` | history window; press again to close it |
 | `Ctrl+F` in the history window | search closed notes and the trash |
+| `Ctrl+Click` on a link | open it in the default browser |
 | `Ctrl+S` | save the note as `.txt` (dialog) |
 | `F1` | built-in help page |
 | `Ctrl+Q` | quit the application |
@@ -98,9 +100,9 @@ dark theme separately; an empty field means the theme color.
 
 **Behavior** — hide delay on focus loss (at once / 300 ms / 1 s / 3 s), appearance (slide / instant;
 with another monitor on that side the reveal is instant anyway), screen edge (right / left; with
-another monitor on that edge the panel also appears instantly), theme (system / light / dark),
-interface language, monitor (auto or a specific screen), global hotkey on/off, remember last search
-query, start with Windows.
+another monitor on that edge the panel also appears instantly), tab (show / hide), theme
+(system / light / dark), interface language, monitor (auto or a specific screen), global hotkey
+on/off, remember last search query, start with Windows.
 
 "Never hide" is gone: the pin in the header does the same for the current session.
 
@@ -236,6 +238,7 @@ HideyNotes откатывается в обычное окно с кнопкой
 | `Ctrl+Shift+Space` | показать / скрыть панель |
 | `Esc` | сначала закрыть поиск или настройки, потом скрыть панель |
 | `Ctrl+P` | окно настроек; повторное нажатие закрывает |
+| `Ctrl+I` | закрепить / открепить панель (то же, что кнопка в шапке) |
 | `Ctrl+T` | новая вкладка |
 | `Ctrl+W` | закрыть вкладку (уходит в историю) |
 | `Ctrl+Shift+W` | закрыть и забыть (без истории) |
@@ -248,6 +251,7 @@ HideyNotes откатывается в обычное окно с кнопкой
 | `Ctrl+Shift+F` | поиск по всем заметкам; при открытом поиске другая комбинация переключает область |
 | `Ctrl+H` | окно истории; повторное нажатие закрывает |
 | `Ctrl+F` в окне истории | поиск по закрытым заметкам и корзине |
+| `Ctrl+клик` по ссылке | открыть её в браузере |
 | `Ctrl+S` | сохранить заметку в `.txt` (диалог) |
 | `F1` | встроенная справка |
 | `Ctrl+Q` | выйти из программы |
@@ -265,9 +269,10 @@ HideyNotes откатывается в обычное окно с кнопкой
 
 **Поведение** — задержка скрытия при потере фокуса (сразу / 300 мс / 1 с / 3 с), появление
 (выезд / мгновенно; если на этом краю другой монитор, появление и так мгновенное), край экрана
-(справа / слева; если на этом краю другой монитор, панель тоже появляется мгновенно), тема
-(системная / светлая / тёмная), язык интерфейса, монитор (авто или конкретный экран), глобальная
-горячая клавиша вкл/выкл, помнить последний запрос поиска, запускать при входе в Windows.
+(справа / слева; если на этом краю другой монитор, панель тоже появляется мгновенно), язычок
+(показывать / скрывать), тема (системная / светлая / тёмная), язык интерфейса, монитор (авто или
+конкретный экран), глобальная горячая клавиша вкл/выкл, помнить последний запрос поиска,
+запускать при входе в Windows.
 
 Пункта «никогда» больше нет: то же самое на время сеанса делает булавка в шапке.
 

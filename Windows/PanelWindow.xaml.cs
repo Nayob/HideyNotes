@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -95,6 +96,7 @@ namespace HideyNotes.Windows
             Loaded += (_, _) => ScrollActiveTabIntoView();
 
             Editor.TextChanged += OnEditorTextChanged;
+            Editor.PreviewMouseLeftButtonDown += OnEditorPreviewMouseDown;
             DataObject.AddPastingHandler(Editor, OnEditorPasting);
 
             App.Current.Theme.Changed += OnThemeChanged;
@@ -337,6 +339,90 @@ namespace HideyNotes.Windows
             var text = e.DataObject.GetData(DataFormats.UnicodeText) as string ?? string.Empty;
             e.CancelCommand();
             Editor.Selection.Text = text.Replace("\r\n", "\n").Replace('\r', '\n');
+        }
+
+        // ---------- links ----------
+
+        /// <summary>Web and mail links only: a note must never launch an arbitrary protocol handler.</summary>
+        private static readonly Regex LinkPattern = new(
+            @"(?:https?://|mailto:)[^\s<>""']+",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+        private static readonly char[] LinkTrailer =
+        {
+            '.', ',', ';', ':', '!', '?', ')', ']', '}', '>', '"', '\'', '»', '…'
+        };
+
+        /// <summary>
+        /// Ctrl+Click on a link opens it in the default browser. The document is left alone: no runs
+        /// are split and nothing is restyled, so the caret, the undo stack and the input method keep
+        /// working as usual. A plain click still just puts the caret where the user clicked.
+        /// </summary>
+        private void OnEditorPreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if ((Keyboard.Modifiers & ModifierKeys.Control) == 0) return;
+            if (e.ChangedButton != MouseButton.Left) return;
+
+            TextPointer? position;
+            try
+            {
+                position = Editor.GetPositionFromPoint(e.GetPosition(Editor), true);
+            }
+            catch (Exception ex)
+            {
+                Log.Error("link hit test failed", ex);
+                return;
+            }
+
+            if (position is null) return;
+
+            // The same convention GetText() uses: TextRange.Text counts a paragraph break as CRLF.
+            var offset = new TextRange(Editor.Document.ContentStart, position).Text.Length;
+            var link = FindLinkAt(GetText(), offset);
+            if (link is null) return;
+
+            e.Handled = true;
+            OpenLink(link);
+        }
+
+        /// <summary>The link under a character offset, or null when the offset is not inside one.</summary>
+        private static string? FindLinkAt(string text, int offset)
+        {
+            if (string.IsNullOrEmpty(text) || offset < 0 || offset > text.Length) return null;
+
+            foreach (Match match in LinkPattern.Matches(text))
+            {
+                if (offset < match.Index || offset > match.Index + match.Length) continue;
+
+                var link = match.Value.TrimEnd(LinkTrailer);
+                if (link.Length == 0) continue;
+                if (!link.Contains("://", StringComparison.Ordinal) &&
+                    !link.StartsWith("mailto:", StringComparison.OrdinalIgnoreCase)) continue;
+
+                return link;
+            }
+
+            return null;
+        }
+
+        private static void OpenLink(string link)
+        {
+            if (!Uri.TryCreate(link, UriKind.Absolute, out var uri)) return;
+            if (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps &&
+                uri.Scheme != Uri.UriSchemeMailto) return;
+
+            try
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(link)
+                {
+                    UseShellExecute = true
+                });
+                Log.Info($"link opened: {uri.Scheme}");
+            }
+            catch (Exception ex)
+            {
+                Log.Error("link open failed", ex);
+            }
         }
 
         private void UpdateCounters(string text)
@@ -880,6 +966,15 @@ namespace HideyNotes.Windows
                 return;
             }
 
+            if (ctrl && e.Key == Key.I)
+            {
+                // The editor is a plain-text document, so Ctrl+I has no italic to apply; marking
+                // the key handled also keeps the rich text editor from styling the selection.
+                TogglePin();
+                e.Handled = true;
+                return;
+            }
+
             if (ctrl && e.Key == Key.P)
             {
                 // Same button as the gear: the second press closes the settings, like the hotkey.
@@ -1231,6 +1326,9 @@ namespace HideyNotes.Windows
             DockLeft.IsChecked = left;
             DockRight.IsChecked = !left;
 
+            HandleShow.IsChecked = settings.ShowHandle;
+            HandleHide.IsChecked = !settings.ShowHandle;
+
             ThemeSystem.IsChecked = settings.Theme == "system";
             ThemeLight.IsChecked = settings.Theme == "light";
             ThemeDark.IsChecked = settings.Theme == "dark";
@@ -1283,10 +1381,43 @@ namespace HideyNotes.Windows
         /// </summary>
         private void OnPinToggled(object sender, RoutedEventArgs e)
         {
-            if (_loading) return;
+            if (_loading || _applyingPin) return;
 
-            App.Current.Controller?.SetPinned(PinButton.IsChecked == true);
-            PinButton.ToolTip = Loc.T(PinButton.IsChecked == true ? "panel.pin.on" : "panel.pin");
+            ApplyPin(PinButton.IsChecked == true);
+        }
+
+        /// <summary>Ctrl+I flips the same switch the header button does.</summary>
+        private void TogglePin() => ApplyPin(App.Current.Controller?.IsPinned != true);
+
+        private bool _applyingPin;
+
+        private void ApplyPin(bool pinned)
+        {
+            _applyingPin = true;
+            try
+            {
+                App.Current.Controller?.SetPinned(pinned);
+                PinButton.IsChecked = pinned;
+                PinButton.ToolTip = Loc.T(pinned ? "panel.pin.on" : "panel.pin");
+            }
+            finally
+            {
+                _applyingPin = false;
+            }
+        }
+
+        /// <summary>The tab at the edge can be switched off; the hotkey and the tray still work.</summary>
+        private void OnHandleChecked(object sender, RoutedEventArgs e)
+        {
+            if (_loading || sender is not RadioButton { Tag: string tag }) return;
+
+            var settings = App.Current.Settings;
+            var show = tag == "true";
+            if (settings.ShowHandle == show) return;
+
+            settings.ShowHandle = show;
+            SettingsStore.Save(settings);
+            App.Current.Controller?.ApplyHandle();
         }
 
         private void OnTransitionChecked(object sender, RoutedEventArgs e)

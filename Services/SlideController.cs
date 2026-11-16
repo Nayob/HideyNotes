@@ -290,7 +290,18 @@ namespace HideyNotes.Services
                 else if (progress > 0.001 && !visibleNow) Native.ShowWindow(_panelHwnd, Native.SW_SHOWNOACTIVATE);
             }
 
-            if (!_handleVisible) return;
+            if (!_handleVisible || !_settings.ShowHandle)
+            {
+                // The tab is either out of the closed state or switched off in the settings. WPF
+                // may bring the window back on its own, so the Win32 visibility is forced here:
+                // one redundant ShowWindow call is cheaper than a tab that refuses to go away.
+                if (_handleHwnd != IntPtr.Zero && Native.IsWindowVisible(_handleHwnd))
+                {
+                    Native.ShowWindow(_handleHwnd, Native.SW_HIDE);
+                }
+
+                return;
+            }
 
             // The tab sits next to the panel's edge: left of it when docked right, right of it when
             // docked left, so it is always the first thing on the screen.
@@ -374,6 +385,14 @@ namespace HideyNotes.Services
         /// <summary>The handle is only needed while the panel is closed, so it follows the edge out.</summary>
         private void ShowHandle()
         {
+            // The tab can be switched off in the settings: the hotkey and the tray still open the
+            // panel, so the closed state simply has nothing on screen.
+            if (!_settings.ShowHandle)
+            {
+                HideHandle();
+                return;
+            }
+
             if (_handleVisible)
             {
                 ApplyFrame(_progress);
@@ -382,14 +401,26 @@ namespace HideyNotes.Services
 
             _handleVisible = true;
             _handle.Show();
+            if (_handleHwnd != IntPtr.Zero) Native.ShowWindow(_handleHwnd, Native.SW_SHOWNOACTIVATE);
             ApplyFrame(_progress);
+        }
+
+        /// <summary>Re-reads the tab setting, e.g. right after the user switches it off.</summary>
+        public void ApplyHandle()
+        {
+            if (_settings.ShowHandle) ShowHandle();
+            else HideHandle();
         }
 
         private void HideHandle()
         {
             if (!_handleVisible) return;
             _handleVisible = false;
+
+            // Both layers are switched off: WPF's own visibility, and the Win32 one the rest of the
+            // app drives. Hiding only the WPF window has proven unreliable right after start-up.
             _handle.Hide();
+            if (_handleHwnd != IntPtr.Zero) Native.ShowWindow(_handleHwnd, Native.SW_HIDE);
         }
 
         public void ShowPanel()

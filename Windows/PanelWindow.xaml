@@ -412,6 +412,17 @@
                                        TextWrapping="Wrap"
                                        Margin="0,0,0,6" />
 
+                            <TextBlock Text="{DynamicResource Loc.panel.handle}" Style="{StaticResource FieldLabel}" Margin="0,10,0,7" />
+                            <WrapPanel Margin="0,0,0,4">
+                                <RadioButton x:Name="HandleShow" Style="{StaticResource Segment}" GroupName="handle" Content="{DynamicResource Loc.panel.handle.show}" Tag="true" Checked="OnHandleChecked" />
+                                <RadioButton x:Name="HandleHide" Style="{StaticResource Segment}" GroupName="handle" Content="{DynamicResource Loc.panel.handle.hide}" Tag="false" Checked="OnHandleChecked" />
+                            </WrapPanel>
+                            <TextBlock Text="{DynamicResource Loc.panel.handle.hint}"
+                                       FontSize="10.5"
+                                       Foreground="{DynamicResource MutedBrush}"
+                                       TextWrapping="Wrap"
+                                       Margin="0,0,0,6" />
+
                             <TextBlock Text="{DynamicResource Loc.panel.theme}" Style="{StaticResource FieldLabel}" Margin="0,10,0,7" />
                             <WrapPanel Margin="0,0,0,6">
                                 <RadioButton x:Name="ThemeSystem" Style="{StaticResource Segment}" GroupName="theme" Content="{DynamicResource Loc.panel.theme.system}" Tag="system" Checked="OnThemeChecked" />
