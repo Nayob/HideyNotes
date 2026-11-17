@@ -1,17 +1,26 @@
 using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using HideyNotes.Localization;
 
 namespace HideyNotes.Models
 {
     public sealed class Note : INotifyPropertyChanged
     {
         private string _title = "Заметка";
+        private string _origin = OriginNone;
         private bool _isActive;
         private bool _isEditing;
         private bool _isTabVisible = true;
         private int _matchCount;
+
+        /// <summary>A fresh note: closing it sends it to the trash.</summary>
+        public const string OriginNone = "none";
+
+        /// <summary>Opened from the library: closing it puts it back into the library.</summary>
+        public const string OriginLibrary = "library";
+
+        /// <summary>Restored from the trash: closing it puts it back into the trash.</summary>
+        public const string OriginTrash = "trash";
 
         public string Id { get; set; } = Guid.NewGuid().ToString("N");
         public int Order { get; set; }
@@ -19,26 +28,34 @@ namespace HideyNotes.Models
         public DateTime Modified { get; set; } = DateTime.Now;
         public bool IsOpen { get; set; } = true;
 
-        /// <summary>Built-in help tab: never goes to history, recreated on demand.</summary>
+        /// <summary>Built-in help tab: never filed anywhere, recreated on demand.</summary>
         public bool IsHelp { get; set; }
         public string? SavedPath { get; set; }
         public DateTime? SavedAt { get; set; }
 
-        /// <summary>When the tab was moved to history; null for open notes.</summary>
-        public DateTime? HistoryAt { get; set; }
+        /// <summary>When the note was put into the library; null for notes that never were.</summary>
+        public DateTime? LibraryAt { get; set; }
 
-        public DateTime HistorySince => HistoryAt ?? Modified;
+        /// <summary>Where the note came from: none, library or trash. Decides what closing does.</summary>
+        public string Origin
+        {
+            get => _origin;
+            set
+            {
+                if (_origin == value) return;
+                _origin = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(IsLibrary));
+            }
+        }
 
-        public bool IsExpiringSoon => !IsOpen && DateTime.Now >= HistorySince.AddDays(27);
-
-        public int ExpiryDaysLeft => Math.Max(0, 30 - (int)(DateTime.Now - HistorySince).TotalDays);
-
-        public string ExpiryLabel => IsOpen ? string.Empty : Loc.F("note.expiry", ExpiryDaysLeft);
+        /// <summary>The tab shows a small book icon, and closing returns the note to the library.</summary>
+        public bool IsLibrary => _origin == OriginLibrary;
 
         /// <summary>Note body, kept in memory for open tabs.</summary>
         public string Text { get; set; } = string.Empty;
 
-        /// <summary>First line shown in the history window.</summary>
+        /// <summary>First line shown in the library and trash lists.</summary>
         public string Preview { get; set; } = string.Empty;
 
         public string Title

@@ -47,6 +47,14 @@
     "panel.transition.hint": "Slide takes 220 ms. If another monitor starts where the panel hides, it appears instantly.",
     "panel.pin": "Pin the panel: it will not hide when it loses focus (until the app restarts)",
     "panel.pin.on": "Unpin: hide the panel on focus loss again",
+    "panel.tab.library": "From the library",
+    "panel.action.library": "To library",
+    "panel.action.return": "Back to library",
+    "panel.action.trash": "To trash",
+    "panel.flash.library": "In the library",
+    "panel.flash.returned": "Back in the library",
+    "panel.flash.trash": "Moved to trash · 30 days",
+    "panel.flash.trashFromLibrary": "Removed from the library, now in the trash · 30 days",
     "panel.print": "Print the note (Ctrl+P)",
     "panel.dockSide": "Screen edge",
     "panel.dockSide.right": "Right",
@@ -78,22 +86,24 @@
     "panel.trayUnavailable": "Windows does not allow a tray icon here. Use the button below to close the app.",
     "panel.quit": "Quit",
 
-    "hist.windowTitle": "Note history",
-    "hist.title": "History",
-    "hist.hintClosed": "Closed tabs: restore them or move them to the trash; they disappear after 30 days",
-    "hist.hintTrash": "Deleted notes: restore them or delete them forever; after 30 days they are gone",
-    "hist.modeClosed": "Closed",
+    "hist.windowTitle": "Library and trash",
+    "hist.title": "Library",
+    "hist.hintLibrary": "Notes kept for good: open one, or move it to the trash",
+    "hist.hintTrash": "Everything removed from the tabs stays here for 30 days: put it back or delete it forever",
+    "hist.modeLibrary": "Library",
     "hist.modeTrash": "Trash",
     "hist.searchPlaceholder": "Search titles and text",
-    "hist.emptyClosed": "No closed notes",
+    "hist.emptyLibrary": "The library is empty",
     "hist.emptyTrash": "Trash is empty",
     "hist.emptyNotFound": "Nothing found",
     "hist.found": "{0} of {1}",
-    "hist.restore": "Restore",
+    "hist.restore": "Open",
     "hist.toTrash": "To trash",
     "hist.trashRestore": "Put back",
     "hist.deleteForever": "Delete forever",
-    "hist.clearHistory": "Clear history",
+    "hist.confirmDelete": "Delete this note forever? It will not go to the trash.",
+    "hist.confirmDeleteTitle": "Delete forever",
+    "hist.confirmClear": "Delete every note in the trash forever?",
     "hist.clearTrash": "Empty trash",
     "hist.clearDisabled": "Clearing is off while the search is on",
 
@@ -107,6 +117,8 @@
     "note.help": "Help",
     "note.expiry": "deleted in {0} d",
 
-    "help.text": "HideyNotes — quick notes at the edge of the screen.\n\nPANEL\n• Ctrl+Shift+Space — show or hide the panel.\n• Clicking the tab at the right edge does the same.\n• Esc closes the search and the settings first, then hides the panel.\n• Ctrl+P prints the current note; Alt+P opens or closes the settings — the same as the gear.\n• The panel hides itself when it loses focus; the delay is adjustable in the settings.\n• The pin in the header stops that hiding until the app restarts: the panel stays open while you work in other windows. The hotkey, Esc and the × still hide it.\n• Ctrl+Shift+P pins and unpins the panel, the same as the button in the header.\n• The tab can be hidden in the settings; the hotkey and the tray menu still open the panel.\n• Ctrl+Click on a link in a note opens it in the default browser.\n• The tab and the panel can live at the right or the left edge; the Screen edge setting switches them.\n• To close the app completely use the tray icon or Ctrl+Q.\n• The settings can pin the panel to a specific monitor (by default — the one with the cursor).\n\nTABS\n• Ctrl+T — new note.\n• Ctrl+W — close the tab (the note goes to history).\n• Ctrl+Shift+W — close and forget, no history.\n• Ctrl+Shift+T — reopen the last closed one.\n• Ctrl+Tab and Ctrl+Shift+Tab — next and previous tab.\n• Ctrl+1…9 or Alt+1…9 — jump to a tab by number.\n• F2 or a double click on a tab — rename.\n• Tabs can be dragged with the mouse, a middle click closes one.\n\nSEARCH\n• Ctrl+F — open or close the search over the current note (the query is remembered).\n• Ctrl+Shift+F — the same but over every tab; with the search already open the other shortcut only switches the scope.\n• Enter or F3 — next match, Shift+F3 — previous one.\n• \"Note\" searches the current note, \"All\" searches every note; tabs without matches are hidden.\n\nSAVING\n• Ctrl+S or the button in the header — save the note as .txt.\n• Drafts are saved automatically, so nothing is lost when the app closes.\n\nHISTORY AND TRASH\n• Ctrl+H — open or close the window.\n• Ctrl+F in the history window — search titles and text (both closed notes and the trash).\n• \"Closed\" — tabs you closed. Restore them or move them to the trash.\n• \"Trash\" — notes deleted from the closed list. Put them back or delete them forever.\n• Notes live 30 days in both lists, then they are removed for good.\n• The \"Help\" tab never goes to history: closed means gone.\n\nSETTINGS\n• The gear in the header (or Ctrl+P): text (font, size, spacing, padding, color) and behavior (hiding, theme, language, monitor, hotkey, search memory).\n• F1 — open this help page."
+    "help.text": "HideyNotes — quick notes at the edge of the screen.\n\nPANEL\n• Ctrl+Shift+Space — show or hide the panel.\n• Clicking the tab at the right edge does the same.\n• Esc closes the search and the settings first, then hides the panel.\n• Ctrl+P prints the current note; Alt+P opens or closes the settings — the same as the gear.\n• The panel hides itself when it loses focus; the delay is adjustable in the settings.\n• The pin in the header stops that hiding until the app restarts: the panel stays open while you work in other windows. The hotkey, Esc and the × still hide it.\n• Ctrl+Shift+P pins and unpins the panel, the same as the button in the header.\n• The tab can be hidden in the settings; the hotkey and the tray menu still open the panel.\n• Ctrl+Click on a link in a note opens it in the default browser.\n• The tab and the panel can live at the right or the left edge; the Screen edge setting switches them.\n• To close the app completely use the tray icon or Ctrl+Q.\n• The settings can pin the panel to a specific monitor (by default — the one with the cursor).\n\nTABS\n• Ctrl+T — new note.\n• Ctrl+W — take the note off the tabs: a library note goes back to the library, everything else to the trash.\n• The two buttons under the tabs say what will happen: «To library» or «Back to library», and «To trash».\n• Ctrl+Shift+L — file the note into the library.\n• Ctrl+Shift+T — bring back the last note from the trash.\n• Ctrl+Tab and Ctrl+Shift+Tab — next and previous tab.\n• Ctrl+1…9 or Alt+1…9 — jump to a tab by number.\n• F2 or a double click on a tab — rename.\n• Tabs can be dragged with the mouse, a middle click closes one.\n\nSEARCH\n• Ctrl+F — open or close the search over the current note (the query is remembered).\n• Ctrl+Shift+F — the same but over every tab; with the search already open the other shortcut only switches the scope.\n• Enter or F3 — next match, Shift+F3 — previous one.\n• \"Note\" searches the current note, \"All\" searches every note; tabs without matches are hidden.\n\nSAVING\n• Ctrl+S or the button in the header — save the note as .txt.\n• Drafts are saved automatically, so nothing is lost when the app closes.\n\nLIBRARY AND TRASH\n• Ctrl+H — open or close the window.\n• Ctrl+F in the window — search titles and text, in the library and in the trash.\n• \"Library\" — notes kept for good. Open one, or move it to the trash; the library itself is never cleared.\n• \"Trash\" — everything taken off the tabs. Put it back or delete it forever.\n• Notes stay in the trash for 30 days, then they are removed for good.\n• Deleting forever is only possible in the trash, and it asks first.\n• A note opened from the library shows a small book in its tab, and closing it puts it back into the library.\n• The \"Help\" tab is built in: closing it just closes it.\n\nSETTINGS\n• The gear in the header (or Alt+P): text (font, size, spacing, padding, color) and behavior (hiding, theme, language, monitor, hotkey, search memory).\n• F1 — open this help page."
   }
 }
+
+

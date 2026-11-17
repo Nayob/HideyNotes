@@ -68,10 +68,11 @@
                                 Style="{StaticResource IconButton}"
                                 Content="&#xE74E;"
                                 Click="OnSaveClick" />
-                        <Button x:Name="HistoryButton"
+                        <Button x:Name="LibraryButton"
                                 Style="{StaticResource IconButton}"
                                 Content="&#xE81C;"
-                                Click="OnHistoryClick" />
+                                ToolTip="{DynamicResource Loc.hist.windowTitle}"
+                                Click="OnLibraryClick" />
                         <Button x:Name="SettingsButton"
                                 Style="{StaticResource IconButton}"
                                 Content="&#xE713;"
@@ -88,6 +89,10 @@
                 </Grid>
 
                 <Grid Grid.Row="1" Margin="12,4,12,4">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
@@ -137,14 +142,15 @@
                                                          KeyDown="OnTabEditKeyDown"
                                                          LostFocus="OnTabEditLostFocus" />
                                             </Grid>
-                                            <Button x:Name="TabClose"
-                                                    Content="&#xE711;"
-                                                    Width="18"
-                                                    Height="18"
-                                                    Margin="5,0,0,0"
-                                                    Visibility="Collapsed"
-                                                    Style="{StaticResource TabCloseButton}"
-                                                    Click="OnTabCloseClick" />
+                                            <TextBlock x:Name="TabBook"
+                                                       Text="&#xE8F1;"
+                                                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                                       FontSize="10"
+                                                       Margin="5,0,0,0"
+                                                       VerticalAlignment="Center"
+                                                       Visibility="Collapsed"
+                                                       Foreground="{DynamicResource MutedBrush}"
+                                                       ToolTip="{DynamicResource Loc.panel.tab.library}" />
                                             <Border x:Name="TabBadge"
                                                     Background="{DynamicResource AccentSoftBrush}"
                                                     CornerRadius="7"
@@ -159,18 +165,18 @@
                                     <DataTemplate.Triggers>
                                         <Trigger SourceName="TabRoot" Property="IsMouseOver" Value="True">
                                             <Setter TargetName="TabRoot" Property="Background" Value="{DynamicResource HoverBrush}" />
-                                            <Setter TargetName="TabClose" Property="Visibility" Value="Visible" />
                                         </Trigger>
                                         <DataTrigger Binding="{Binding IsActive}" Value="True">
                                             <Setter TargetName="TabRoot" Property="Background" Value="{DynamicResource AccentSoftBrush}" />
                                             <Setter TargetName="TabTitle" Property="Foreground" Value="{DynamicResource TextBrush}" />
                                             <Setter TargetName="TabTitle" Property="FontWeight" Value="SemiBold" />
-                                            <Setter TargetName="TabClose" Property="Visibility" Value="Visible" />
                                         </DataTrigger>
                                         <DataTrigger Binding="{Binding IsEditing}" Value="True">
                                             <Setter TargetName="TabTitle" Property="Visibility" Value="Collapsed" />
                                             <Setter TargetName="TabEdit" Property="Visibility" Value="Visible" />
-                                            <Setter TargetName="TabClose" Property="Visibility" Value="Collapsed" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding IsLibrary}" Value="True">
+                                            <Setter TargetName="TabBook" Property="Visibility" Value="Visible" />
                                         </DataTrigger>
                                         <DataTrigger Binding="{Binding MatchCount}" Value="0">
                                             <Setter TargetName="TabBadge" Property="Visibility" Value="Collapsed" />
@@ -192,6 +198,21 @@
                             Content="&#xE710;"
                             Style="{StaticResource TabAddButton}"
                             Click="OnNewTabClick" />
+
+                    <StackPanel x:Name="TabActions"
+                                Grid.Row="1"
+                                Grid.ColumnSpan="2"
+                                Orientation="Horizontal"
+                                Margin="2,3,0,0">
+                        <Button x:Name="FileToLibraryButton"
+                                Style="{StaticResource BarButton}"
+                                Click="OnFileToLibraryClick" />
+                        <Button x:Name="SendToTrashButton"
+                                Style="{StaticResource BarButton}"
+                                Content="{DynamicResource Loc.panel.action.trash}"
+                                Margin="14,0,0,0"
+                                Click="OnSendToTrashClick" />
+                    </StackPanel>
                 </Grid>
 
                 <Border x:Name="SearchBar"
@@ -503,3 +524,4 @@
         </Grid>
     </Grid>
 </Window>
+

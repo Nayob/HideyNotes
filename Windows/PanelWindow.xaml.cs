@@ -32,11 +32,13 @@ namespace HideyNotes.Windows
         private Note? _dragNote;
         private Point _dragStart;
         private bool _dragging;
-        private HistoryWindow? _historyWindow;
-        private bool _historyClickThrough;
+        private LibraryWindow? _libraryWindow;
+        private bool _libraryClickThrough;
         private bool _suppressHistoryRefocus;
         private bool _panelClosing;
         private bool _isPrinting;
+        private string? _flashKey;
+        private readonly DispatcherTimer _flashTimer;
 
         private List<int> _matches = new();
         private int _searchIndex = -1;
@@ -74,10 +76,18 @@ namespace HideyNotes.Windows
             SetVersionLabel();
             FontBox.ItemsSource = _fontChoices;
 
+            _flashTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2.4) };
+            _flashTimer.Tick += (_, _) =>
+            {
+                _flashTimer.Stop();
+                _flashKey = null;
+                UpdateStatus();
+            };
+
             SourceInitialized += OnSourceInitialized;
             Activated += (_, _) =>
             {
-                if (IsHistoryOpen) _historyClickThrough = true;
+                if (IsLibraryOpen) _libraryClickThrough = true;
 
                 App.Current.Controller?.NotifyPanelActivated();
 
@@ -117,7 +127,7 @@ namespace HideyNotes.Windows
         /// <summary>The print dialog is modal and takes the focus; the panel must stay put meanwhile.</summary>
         public bool IsPrinting => _isPrinting;
 
-        public bool IsHistoryOpen => _historyWindow is { IsLoaded: true };
+        public bool IsLibraryOpen => _libraryWindow is { IsLoaded: true };
 
         /// <summary>When the tray is unavailable the panel acts as a regular taskbar window and closing it exits.</summary>
         public bool TaskbarFallback { get; set; }
@@ -189,7 +199,7 @@ namespace HideyNotes.Windows
             {
                 // A click on the panel while the history dialog sits on top: the dialog closes
                 // on deactivation, and focus has to come back here afterwards.
-                if (IsHistoryOpen) _historyClickThrough = true;
+                if (IsLibraryOpen) _libraryClickThrough = true;
             }
 
             return IntPtr.Zero;
@@ -268,6 +278,7 @@ namespace HideyNotes.Windows
         {
             ShowActiveNote();
             ScrollActiveTabIntoView();
+            UpdateTabActions();
         }
 
         private void ShowActiveNote()
@@ -287,6 +298,8 @@ namespace HideyNotes.Windows
             UpdateStatus();
 
             if (SearchOpen && !string.IsNullOrEmpty(SearchBox.Text)) RunSearch(selectFirst: true);
+
+            UpdateTabActions();
         }
 
         private void ScrollActiveTabIntoView()
@@ -437,9 +450,28 @@ namespace HideyNotes.Windows
 
         private void UpdateStatus()
         {
+            if (_flashKey is not null)
+            {
+                StatusText.Text = Loc.T(_flashKey);
+                return;
+            }
+
             StatusText.Text = $"{_charCount} {Loc.Instance.Plural("panel.status.chars", _charCount)} · " +
                               $"{_wordCount} {Loc.Instance.Plural("panel.status.words", _wordCount)} · " +
                               $"{(_saveStateArg is null ? Loc.T(_saveStateKey) : Loc.F(_saveStateKey, _saveStateArg))}";
+        }
+
+        /// <summary>
+        /// Shows what just happened for a couple of seconds ("Убрано в корзину · 30 дней").
+        /// Nothing else in the panel changes, so a deliberate action gets a plain confirmation.
+        /// </summary>
+        private void FlashStatus(string key)
+        {
+            _flashKey = key;
+            UpdateStatus();
+
+            _flashTimer.Stop();
+            _flashTimer.Start();
         }
 
         /// <summary>Remembers how the state reads, so it can be re-rendered when the language changes.</summary>
@@ -768,10 +800,46 @@ namespace HideyNotes.Windows
 
         private void OnNewTabClick(object sender, RoutedEventArgs e) => Store.CreateNote();
 
-        private void OnTabCloseClick(object sender, RoutedEventArgs e)
+        /// <summary>
+        /// The action bar under the tabs says exactly what will happen: closing a library note
+        /// puts it back into the library, every other note goes to the trash.
+        /// </summary>
+        private void UpdateTabActions()
         {
-            e.Handled = true;
-            if (sender is FrameworkElement { DataContext: Note note }) Store.Close(note);
+            var note = Store.Active;
+
+            if (note is null || note.IsHelp)
+            {
+                FileToLibraryButton.Visibility = Visibility.Collapsed;
+                SendToTrashButton.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            FileToLibraryButton.Visibility = Visibility.Visible;
+            SendToTrashButton.Visibility = Visibility.Visible;
+
+            var key = note.IsLibrary ? "panel.action.return" : "panel.action.library";
+            FileToLibraryButton.Content = Loc.T(key);
+        }
+
+        private void OnFileToLibraryClick(object sender, RoutedEventArgs e)
+        {
+            var note = Store.Active;
+            if (note is null || note.IsHelp) return;
+
+            var wasLibrary = note.IsLibrary;
+            Store.MoveToLibrary(note);
+            FlashStatus(wasLibrary ? "panel.flash.returned" : "panel.flash.library");
+        }
+
+        private void OnSendToTrashClick(object sender, RoutedEventArgs e)
+        {
+            var note = Store.Active;
+            if (note is null || note.IsHelp) return;
+
+            var wasLibrary = note.IsLibrary;
+            Store.DiscardToTrash(note);
+            FlashStatus(wasLibrary ? "panel.flash.trashFromLibrary" : "panel.flash.trash");
         }
 
         private void OnTabMouseMiddle(object sender, MouseButtonEventArgs e)
@@ -1041,8 +1109,26 @@ namespace HideyNotes.Windows
 
             if (ctrl && e.Key == Key.W)
             {
-                if (shift) Store.CloseAndForget(Store.Active);
-                else Store.Close(Store.Active);
+                // Closing a library note puts it back into the library, everything else goes to
+                // the trash: the store decides from the note's origin.
+                var closing = Store.Active;
+                var wasLibrary = closing?.IsLibrary == true;
+                Store.Close(closing);
+                FlashStatus(wasLibrary ? "panel.flash.returned" : "panel.flash.trash");
+                e.Handled = true;
+                return;
+            }
+
+            if (ctrl && shift && e.Key == Key.L)
+            {
+                var active = Store.Active;
+                if (active is { IsHelp: false })
+                {
+                    var wasLibrary = active.IsLibrary;
+                    Store.MoveToLibrary(active);
+                    FlashStatus(wasLibrary ? "panel.flash.returned" : "panel.flash.library");
+                }
+
                 e.Handled = true;
                 return;
             }
@@ -1063,7 +1149,7 @@ namespace HideyNotes.Windows
 
             if (ctrl && e.Key == Key.H)
             {
-                OpenHistory();
+                OpenLibrary();
                 e.Handled = true;
                 return;
             }
@@ -1085,7 +1171,7 @@ namespace HideyNotes.Windows
 
         public void OpenHelpNote()
         {
-            var note = Store.Tabs.Concat(Store.History).FirstOrDefault(n => n.IsHelp);
+            var note = Store.Tabs.FirstOrDefault(n => n.IsHelp);
 
             if (note is null)
             {
@@ -1093,7 +1179,6 @@ namespace HideyNotes.Windows
             }
             else
             {
-                if (!note.IsOpen) Store.Restore(note);
                 if (note.Title != HelpTitle) Store.Rename(note, HelpTitle);
             }
 
@@ -1169,9 +1254,10 @@ namespace HideyNotes.Windows
             LoadMonitorChoices();
             LoadLanguageChoices();
             UpdateStatus();
+            UpdateTabActions();
             HexHint.Text = Loc.T("panel.textColor.invalid");
 
-            _historyWindow?.ApplyLanguage();
+            _libraryWindow?.ApplyLanguage();
             UpdateHelpNote();
 
             App.Current.RefreshTrayMenu();
@@ -1181,7 +1267,7 @@ namespace HideyNotes.Windows
         /// <summary>Keeps the built-in help tab in the current language.</summary>
         private void UpdateHelpNote()
         {
-            var help = Store.Tabs.Concat(Store.History).FirstOrDefault(n => n.IsHelp);
+            var help = Store.Tabs.FirstOrDefault(n => n.IsHelp);
             if (help is null) return;
 
             if (help.Title != HelpTitle) Store.Rename(help, HelpTitle);
@@ -1197,24 +1283,24 @@ namespace HideyNotes.Windows
 
         // ---------- history ----------
 
-        private void OnHistoryClick(object sender, RoutedEventArgs e) => OpenHistory();
+        private void OnLibraryClick(object sender, RoutedEventArgs e) => OpenLibrary();
 
-        public void OpenHistory()
+        public void OpenLibrary()
         {
-            if (_historyWindow is { IsLoaded: true })
+            if (_libraryWindow is { IsLoaded: true })
             {
-                _historyWindow.KeepOpen();
-                _historyWindow.Activate();
+                _libraryWindow.KeepOpen();
+                _libraryWindow.Activate();
                 return;
             }
 
-            _historyWindow = new HistoryWindow { Owner = this };
-            _historyWindow.Closed += (_, _) =>
+            _libraryWindow = new LibraryWindow { Owner = this };
+            _libraryWindow.Closed += (_, _) =>
             {
-                _historyWindow = null;
+                _libraryWindow = null;
 
-                var clicked = _historyClickThrough;
-                _historyClickThrough = false;
+                var clicked = _libraryClickThrough;
+                _libraryClickThrough = false;
 
                 if (_suppressHistoryRefocus || _panelClosing) return;
 
@@ -1226,16 +1312,16 @@ namespace HideyNotes.Windows
 
                 ReturnFocusToPanel();
             };
-            _historyWindow.Show();
+            _libraryWindow.Show();
         }
 
-        public void CloseHistory()
+        public void CloseLibrary()
         {
-            if (_historyWindow is not { IsLoaded: true }) return;
+            if (_libraryWindow is not { IsLoaded: true }) return;
 
             // Called from the slide controller: no focus juggling, the panel is going away.
             _suppressHistoryRefocus = true;
-            _historyWindow.Close();
+            _libraryWindow.Close();
             _suppressHistoryRefocus = false;
         }
 
@@ -1820,3 +1906,5 @@ namespace HideyNotes.Windows
         }
     }
 }
+
+

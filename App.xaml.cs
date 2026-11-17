@@ -106,23 +106,27 @@ namespace HideyNotes
 
             var openOnStart = Array.Exists(e.Args, a => string.Equals(a, "--open", StringComparison.OrdinalIgnoreCase));
             var settingsOnStart = Array.Exists(e.Args, a => string.Equals(a, "--settings", StringComparison.OrdinalIgnoreCase));
-            var historyOnStart = Array.Exists(e.Args, a => string.Equals(a, "--history", StringComparison.OrdinalIgnoreCase));
+
+            // --history stays as an alias, so existing shortcuts keep working.
+            var libraryOnStart = Array.Exists(e.Args, a =>
+                string.Equals(a, "--library", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(a, "--history", StringComparison.OrdinalIgnoreCase));
             var searchArg = Array.Find(e.Args, a => a.StartsWith("--search=", StringComparison.OrdinalIgnoreCase));
-            if (openOnStart || settingsOnStart || historyOnStart || searchArg is not null)
+            if (openOnStart || settingsOnStart || libraryOnStart || searchArg is not null)
             {
                 Dispatcher.BeginInvoke(new Action(() =>
                 {
                     Controller.ShowPanel();
                     if (settingsOnStart) Controller.OpenSettings();
 
-                    if (historyOnStart)
+                    if (libraryOnStart)
                     {
                         // Let the slide animation finish so the dialog keeps focus.
                         var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(400) };
                         timer.Tick += (_, _) =>
                         {
                             timer.Stop();
-                            _panel?.OpenHistory();
+                            _panel?.OpenLibrary();
                         };
                         timer.Start();
                     }
@@ -170,3 +174,5 @@ namespace HideyNotes
         }
     }
 }
+
+

@@ -12,7 +12,11 @@ using HideyNotes.Services;
 
 namespace HideyNotes.Windows
 {
-    public partial class HistoryWindow : Window
+    /// <summary>
+    /// Library and trash in one window: the library keeps notes for good, the trash keeps
+    /// everything removed from the tabs for 30 days. Deleting for good is only possible here.
+    /// </summary>
+    public partial class LibraryWindow : Window
     {
         private NotesStore Store => App.Current.Notes;
 
@@ -21,8 +25,9 @@ namespace HideyNotes.Windows
         private bool _keepOpen;
         private bool _loading = true;
         private bool _trashMode;
+        private bool _modal;
 
-        public HistoryWindow()
+        public LibraryWindow()
         {
             InitializeComponent();
             Loaded += OnLoaded;
@@ -31,7 +36,7 @@ namespace HideyNotes.Windows
             Activated += (_, _) => _everActivated = true;
             Deactivated += OnDeactivated;
 
-            ModeHistory.IsChecked = true;
+            ModeLibrary.IsChecked = true;
             _loading = false;
 
             UpdateMode();
@@ -40,16 +45,15 @@ namespace HideyNotes.Windows
 
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
-            Store.HistoryChanged += Refresh;
+            Store.LibraryChanged += Refresh;
             Store.TrashChanged += Refresh;
-            Store.PurgeHistory();
             Refresh();
         }
 
         private void OnClosed(object? sender, EventArgs e)
         {
-            Log.Info($"history: closed (fg={Native.Describe(Native.GetForegroundWindow())})");
-            Store.HistoryChanged -= Refresh;
+            Log.Info($"library: closed (fg={Native.Describe(Native.GetForegroundWindow())})");
+            Store.LibraryChanged -= Refresh;
             Store.TrashChanged -= Refresh;
         }
 
@@ -57,6 +61,9 @@ namespace HideyNotes.Windows
         private void OnDeactivated(object? sender, EventArgs e)
         {
             if (!_everActivated || _closing || !IsLoaded) return;
+
+            // A confirmation box deactivates us too: closing the window under it would be a bug.
+            if (_modal) return;
 
             // Closing right here would destroy the window while Windows is still handing the
             // focus to the next window (the panel), and that window would be left without it.
@@ -66,6 +73,8 @@ namespace HideyNotes.Windows
 
         private void CloseFromDeactivate()
         {
+            if (_modal) return;
+
             if (_keepOpen)
             {
                 _keepOpen = false;
@@ -90,13 +99,15 @@ namespace HideyNotes.Windows
 
         private void UpdateMode()
         {
-            HistoryList.Visibility = _trashMode ? Visibility.Collapsed : Visibility.Visible;
+            LibraryList.Visibility = _trashMode ? Visibility.Collapsed : Visibility.Visible;
             TrashList.Visibility = _trashMode ? Visibility.Visible : Visibility.Collapsed;
-            HistoryActions.Visibility = _trashMode ? Visibility.Collapsed : Visibility.Visible;
+            LibraryActions.Visibility = _trashMode ? Visibility.Collapsed : Visibility.Visible;
             TrashActions.Visibility = _trashMode ? Visibility.Visible : Visibility.Collapsed;
 
-            HintText.Text = _trashMode ? Loc.T("hist.hintTrash") : Loc.T("hist.hintClosed");
-            ClearButton.Content = _trashMode ? Loc.T("hist.clearTrash") : Loc.T("hist.clearHistory");
+            // The library is not something you clear: only the trash has that button.
+            ClearButton.Visibility = _trashMode ? Visibility.Visible : Visibility.Collapsed;
+
+            HintText.Text = _trashMode ? Loc.T("hist.hintTrash") : Loc.T("hist.hintLibrary");
         }
 
         /// <summary>Re-renders the texts that are produced in code after the language changed.</summary>
@@ -121,10 +132,10 @@ namespace HideyNotes.Windows
             }
             else
             {
-                var all = Store.History.ToList();
+                var all = Store.Library.ToList();
                 var items = Filter(all, n => n.Title, n => n.Text);
-                HistoryList.ItemsSource = items;
-                EmptyText.Text = query.Length == 0 ? Loc.T("hist.emptyClosed") : Loc.T("hist.emptyNotFound");
+                LibraryList.ItemsSource = items;
+                EmptyText.Text = query.Length == 0 ? Loc.T("hist.emptyLibrary") : Loc.T("hist.emptyNotFound");
                 EmptyText.Visibility = items.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
                 SearchInfo.Text = query.Length == 0 ? string.Empty : Loc.F("hist.found", items.Count, all.Count);
             }
@@ -168,7 +179,7 @@ namespace HideyNotes.Windows
             SearchInfo.Text = string.Empty;
             SearchBox.Text = string.Empty;
             Refresh();
-            HistoryList.Focus();
+            LibraryList.Focus();
         }
 
         private void ToggleSearchField()
@@ -220,36 +231,31 @@ namespace HideyNotes.Windows
                 return;
             }
 
-            var hasHistory = HistoryList.SelectedItem is Note;
-            RestoreButton.IsEnabled = hasHistory;
-            DeleteButton.IsEnabled = hasHistory;
-            RestoreButton.Opacity = hasHistory ? 1 : 0.45;
-            DeleteButton.Opacity = hasHistory ? 1 : 0.45;
-
-            var canClearHistory = HistoryList.Items.Count > 0 && !Searching;
-            ClearButton.IsEnabled = canClearHistory;
-            ClearButton.Opacity = canClearHistory ? 1 : 0.45;
-            ClearButton.ToolTip = Searching ? Loc.T("hist.clearDisabled") : null;
+            var hasLibrary = LibraryList.SelectedItem is Note;
+            OpenButton.IsEnabled = hasLibrary;
+            LibraryTrashButton.IsEnabled = hasLibrary;
+            OpenButton.Opacity = hasLibrary ? 1 : 0.45;
+            LibraryTrashButton.Opacity = hasLibrary ? 1 : 0.45;
         }
 
         private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (_trashMode && TrashList.SelectedItem is not null) HistoryList.SelectedItem = null;
-            if (!_trashMode && HistoryList.SelectedItem is not null) TrashList.SelectedItem = null;
+            if (_trashMode && TrashList.SelectedItem is not null) LibraryList.SelectedItem = null;
+            if (!_trashMode && LibraryList.SelectedItem is not null) TrashList.SelectedItem = null;
 
             UpdateButtons();
         }
 
-        private void OnRestoreClick(object sender, RoutedEventArgs e)
+        private void OnOpenClick(object sender, RoutedEventArgs e)
         {
-            if (HistoryList.SelectedItem is not Note note) return;
+            if (LibraryList.SelectedItem is not Note note) return;
             Store.Restore(note);
             UpdateButtons();
         }
 
-        private void OnDeleteClick(object sender, RoutedEventArgs e)
+        private void OnLibraryTrashClick(object sender, RoutedEventArgs e)
         {
-            if (HistoryList.SelectedItem is not Note note) return;
+            if (LibraryList.SelectedItem is not Note note) return;
             Store.DeleteToTrash(note);
             UpdateButtons();
         }
@@ -264,16 +270,34 @@ namespace HideyNotes.Windows
         private void OnTrashDeleteClick(object sender, RoutedEventArgs e)
         {
             if (TrashList.SelectedItem is not TrashItem item) return;
+            if (!Confirm(Loc.T("hist.confirmDelete"), Loc.T("hist.confirmDeleteTitle"))) return;
+
             Store.DeleteTrashItem(item);
             UpdateButtons();
         }
 
         private void OnClearClick(object sender, RoutedEventArgs e)
         {
-            if (_trashMode) Store.ClearTrash();
-            else Store.ClearHistory();
+            if (!_trashMode) return;
+            if (!Confirm(Loc.T("hist.confirmClear"), Loc.T("hist.confirmDeleteTitle"))) return;
 
+            Store.ClearTrash();
             UpdateButtons();
+        }
+
+        /// <summary>Only destruction asks for confirmation; everything else is undoable.</summary>
+        private bool Confirm(string message, string title)
+        {
+            _modal = true;
+            try
+            {
+                return MessageBox.Show(this, message, title, MessageBoxButton.YesNo, MessageBoxImage.Warning,
+                    MessageBoxResult.No) == MessageBoxResult.Yes;
+            }
+            finally
+            {
+                _modal = false;
+            }
         }
 
         private void OnCloseClick(object sender, RoutedEventArgs e) => Close();
@@ -301,29 +325,25 @@ namespace HideyNotes.Windows
                 return;
             }
 
+            if (e.Key == Key.Escape)
+            {
+                if (SearchBar.Visibility == Visibility.Visible) CloseSearchField();
+                else Close();
+
+                e.Handled = true;
+                return;
+            }
+
             switch (e.Key)
             {
-                case Key.Escape:
-                    // Esc closes the search first, the dialog itself on the second press.
-                    if (SearchBar.Visibility == Visibility.Visible)
-                    {
-                        CloseSearchField();
-                    }
-                    else
-                    {
-                        Close();
-                    }
-
-                    e.Handled = true;
-                    break;
-
                 case Key.Delete:
                     if (_trashMode && TrashList.SelectedItem is TrashItem trashItem)
                     {
+                        if (!Confirm(Loc.T("hist.confirmDelete"), Loc.T("hist.confirmDeleteTitle"))) return;
                         Store.DeleteTrashItem(trashItem);
                         e.Handled = true;
                     }
-                    else if (!_trashMode && HistoryList.SelectedItem is Note note)
+                    else if (!_trashMode && LibraryList.SelectedItem is Note note)
                     {
                         Store.DeleteToTrash(note);
                         e.Handled = true;
@@ -336,7 +356,7 @@ namespace HideyNotes.Windows
                         Store.RestoreFromTrash(restoreTrash);
                         e.Handled = true;
                     }
-                    else if (!_trashMode && HistoryList.SelectedItem is Note restoreNote)
+                    else if (!_trashMode && LibraryList.SelectedItem is Note restoreNote)
                     {
                         Store.Restore(restoreNote);
                         e.Handled = true;

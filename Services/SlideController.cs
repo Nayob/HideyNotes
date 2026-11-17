@@ -366,7 +366,7 @@ namespace HideyNotes.Services
                 _handle.SetOpen(true);
 
                 // Never steal focus from a dialog that is already open on top of the panel.
-                if (_panel.IsHistoryOpen) return;
+                if (_panel.IsLibraryOpen) return;
 
                 _panel.Activate();
                 _panel.FocusEditor();
@@ -458,7 +458,7 @@ namespace HideyNotes.Services
 
             _hideTimer.Stop();
             _panel.CloseSettings();
-            _panel.CloseHistory();
+            _panel.CloseLibrary();
             _panel.CommitDraft();
 
             if (_progress <= 0.001 && !_animating)
@@ -492,7 +492,7 @@ namespace HideyNotes.Services
         {
             if (_disposed) return;
             if (_pinned) return;
-            if (_panel.IsSettingsOpen || _panel.IsHistoryOpen || _panel.IsPrinting) return;
+            if (_panel.IsSettingsOpen || _panel.IsLibraryOpen || _panel.IsPrinting) return;
             if (_progress < 0.5) return;
 
             ScheduleHideIfFocusLost();
@@ -524,7 +524,7 @@ namespace HideyNotes.Services
         private void OnFocusWatchTick(object? sender, EventArgs e)
         {
             if (_disposed || _pinned || _progress < 0.999) return;
-            if (_panel.IsSettingsOpen || _panel.IsHistoryOpen || _panel.IsPrinting) return;
+            if (_panel.IsSettingsOpen || _panel.IsLibraryOpen || _panel.IsPrinting) return;
             if (_hideTimer.IsEnabled) return;
 
             ScheduleHideIfFocusLost();
@@ -572,7 +572,7 @@ namespace HideyNotes.Services
 
             // Unpinning does not hide anything by itself: it only puts the usual rule back, and
             // that rule has to be evaluated right away in case the focus is elsewhere already.
-            if (_progress >= 0.999 && !_panel.IsSettingsOpen && !_panel.IsHistoryOpen) ScheduleHideIfFocusLost();
+            if (_progress >= 0.999 && !_panel.IsSettingsOpen && !_panel.IsLibraryOpen) ScheduleHideIfFocusLost();
         }
 
         public void ApplyHotkey()
@@ -602,3 +602,4 @@ namespace HideyNotes.Services
         }
     }
 }
+

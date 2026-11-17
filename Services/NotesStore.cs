@@ -13,24 +13,30 @@ namespace HideyNotes.Services
     /// <summary>
     /// Notes storage: one .txt per note plus a JSON index for metadata and tab order.
     /// Everything is written atomically; a broken index is rebuilt from the notes themselves.
+    ///
+    /// Life cycle: tabs are the working set, the library keeps notes for good, the trash keeps
+    /// everything removed for 30 days. A note remembers where it came from, so closing it puts it
+    /// back where it belongs instead of asking the user.
     /// </summary>
     public sealed class NotesStore
     {
         private const int PreviewLength = 140;
         private const int TrashRetentionDays = 30;
+        private const int IndexVersion = 2;
 
         private readonly DispatcherTimer _saveTimer;
         private string? _pendingId;
         private string? _pendingText;
 
         public ObservableCollection<Note> Tabs { get; } = new();
-        public List<Note> History { get; } = new();
+        public List<Note> Library { get; } = new();
         public Note? Active { get; private set; }
 
         public event Action? TabsChanged;
         public event Action? ActiveChanged;
         public event Action<DateTime>? Saved;
-        public event Action? HistoryChanged;
+        public event Action? LibraryChanged;
+        public event Action? TrashChanged;
 
         public NotesStore(Dispatcher dispatcher)
         {
@@ -49,10 +55,11 @@ namespace HideyNotes.Services
 
             var index = ReadIndex();
             var metas = index?.Notes ?? new List<NoteMeta>();
+            var migrated = MigrateHistoryToTrash(metas);
 
             var known = new HashSet<string>(metas.Select(m => m.Id), StringComparer.OrdinalIgnoreCase);
 
-            // Adopt orphan files (index lost or a note written by hand).
+            // Adopt orphan files (index lost or a note written by hand): they become open tabs.
             foreach (var file in Directory.EnumerateFiles(AppPaths.NotesDir, "*.txt"))
             {
                 var id = Path.GetFileNameWithoutExtension(file);
@@ -65,13 +72,25 @@ namespace HideyNotes.Services
                     Order = metas.Count,
                     Created = File.GetLastWriteTime(file),
                     Modified = File.GetLastWriteTime(file),
-                    Open = false,
-                    HistoryAt = File.GetLastWriteTime(file)
+                    Open = true
                 });
             }
 
             foreach (var meta in metas.OrderBy(m => m.Order))
             {
+                // A hand-written or broken index may miss the dates: fall back to the file time.
+                if (meta.Modified == default)
+                {
+                    try
+                    {
+                        var path = NotePath(meta.Id);
+                        if (File.Exists(path)) meta.Modified = File.GetLastWriteTime(path);
+                    }
+                    catch { }
+                }
+
+                if (meta.Created == default) meta.Created = meta.Modified;
+
                 var note = new Note
                 {
                     Id = meta.Id,
@@ -83,7 +102,8 @@ namespace HideyNotes.Services
                     IsHelp = meta.IsHelp,
                     SavedPath = meta.SavedPath,
                     SavedAt = meta.SavedAt,
-                    HistoryAt = meta.HistoryAt,
+                    LibraryAt = meta.LibraryAt,
+                    Origin = string.IsNullOrWhiteSpace(meta.Origin) ? Note.OriginNone : meta.Origin,
                     Text = ReadText(meta.Id)
                 };
 
@@ -94,9 +114,11 @@ namespace HideyNotes.Services
                 else
                 {
                     note.Preview = MakePreview(note.Text);
-                    History.Add(note);
+                    Library.Insert(0, note);
                 }
             }
+
+            SortLibrary();
 
             if (Tabs.Count == 0) CreateNote(save: false);
             else
@@ -106,9 +128,36 @@ namespace HideyNotes.Services
                 Active.IsActive = true;
             }
 
-            PurgeHistory();
-            SortHistory();
+            if (migrated) LibraryChanged?.Invoke();
             SaveIndex();
+        }
+
+        /// <summary>
+        /// Older versions kept closed notes in a history list that lived 30 days. That list is gone:
+        /// such notes move to the trash with their original dates, so nothing is lost.
+        /// </summary>
+        private bool MigrateHistoryToTrash(List<NoteMeta> metas)
+        {
+            var changed = false;
+
+            foreach (var meta in metas.Where(m => !m.Open && !m.Library).ToList())
+            {
+                metas.Remove(meta);
+                changed = true;
+
+                try
+                {
+                    var text = ReadText(meta.Id);
+                    WriteTrashEntry(meta.Id, meta.Title, text, meta.HistoryAt ?? meta.Modified);
+                    TryDelete(NotePath(meta.Id));
+                }
+                catch (Exception ex)
+                {
+                    Log.Error($"history migration failed: {meta.Id}", ex);
+                }
+            }
+
+            return changed;
         }
 
         public void Flush()
@@ -151,7 +200,8 @@ namespace HideyNotes.Services
 
         // ---------- tabs ----------
 
-        public Note CreateNote(bool save = true, string? title = null, string? text = null, bool isHelp = false)
+        public Note CreateNote(bool save = true, string? title = null, string? text = null,
+            bool isHelp = false, string origin = Note.OriginNone)
         {
             Flush();
 
@@ -161,6 +211,7 @@ namespace HideyNotes.Services
                 Order = Tabs.Count,
                 IsOpen = true,
                 IsHelp = isHelp,
+                Origin = origin,
                 Text = text ?? string.Empty
             };
 
@@ -190,7 +241,7 @@ namespace HideyNotes.Services
         }
 
         public Note? FindByTitle(string title) =>
-            Tabs.Concat(History).FirstOrDefault(n => string.Equals(n.Title, title, StringComparison.OrdinalIgnoreCase));
+            Tabs.Concat(Library).FirstOrDefault(n => string.Equals(n.Title, title, StringComparison.OrdinalIgnoreCase));
 
         public void SetActive(Note? note)
         {
@@ -236,6 +287,10 @@ namespace HideyNotes.Services
             SetActive(tabs[index]);
         }
 
+        /// <summary>
+        /// Closing never destroys anything: a library note goes back to the library, everything
+        /// else goes to the trash for 30 days.
+        /// </summary>
         public void Close(Note? note)
         {
             if (note is null) return;
@@ -247,24 +302,88 @@ namespace HideyNotes.Services
                 return;
             }
 
+            if (note.Origin == Note.OriginLibrary)
+            {
+                MoveToLibrary(note);
+                return;
+            }
+
+            DiscardToTrash(note);
+        }
+
+        /// <summary>Removes an open note straight to the trash, whatever its origin was.</summary>
+        public void DiscardToTrash(Note? note)
+        {
+            if (note is null || note.IsHelp) return;
+
             Flush();
 
             var index = Tabs.IndexOf(note);
             if (index < 0) return;
-            Tabs.Remove(note);
 
+            WriteTrashEntry(note.Id, note.Title, note.Text, DateTime.Now);
+            Tabs.Remove(note);
             note.IsOpen = false;
             note.IsActive = false;
-            note.HistoryAt = DateTime.Now;
-            note.Preview = MakePreview(note.Text);
-            History.Insert(0, note);
-            SortHistory();
+            TryDelete(NotePath(note.Id));
 
             EnsureActiveAfterRemoval(index);
             Persist();
-            HistoryChanged?.Invoke();
+            TrashChanged?.Invoke();
             TabsChanged?.Invoke();
             ActiveChanged?.Invoke();
+        }
+
+        /// <summary>Files the note away for good: it leaves the tabs and sits in the library.</summary>
+        public void MoveToLibrary(Note? note)
+        {
+            if (note is null || note.IsHelp) return;
+
+            Flush();
+
+            var index = Tabs.IndexOf(note);
+            if (index < 0) return;
+
+            Tabs.Remove(note);
+            note.IsOpen = false;
+            note.IsActive = false;
+            note.Origin = Note.OriginLibrary;
+            note.LibraryAt = DateTime.Now;
+            note.Preview = MakePreview(note.Text);
+            Library.Remove(note);
+            Library.Insert(0, note);
+            SortLibrary();
+
+            EnsureActiveAfterRemoval(index);
+            Persist();
+            LibraryChanged?.Invoke();
+            TabsChanged?.Invoke();
+            ActiveChanged?.Invoke();
+        }
+
+        /// <summary>Opens a library note in the tabs; closing it will put it back.</summary>
+        public void Restore(Note? note)
+        {
+            if (note is null) return;
+
+            Library.Remove(note);
+            note.IsOpen = true;
+            note.Origin = Note.OriginLibrary;
+            note.Order = Tabs.Count;
+            note.Modified = DateTime.Now;
+            Tabs.Add(note);
+
+            SetActiveInternal(note);
+            Persist();
+            LibraryChanged?.Invoke();
+            TabsChanged?.Invoke();
+            ActiveChanged?.Invoke();
+        }
+
+        public void RestoreLastClosed()
+        {
+            var last = ReadTrash().FirstOrDefault();
+            if (last is not null) RestoreFromTrash(last);
         }
 
         public void CloseAndForget(Note? note)
@@ -317,68 +436,22 @@ namespace HideyNotes.Services
             Active = note;
         }
 
-        // ---------- history ----------
+        // ---------- library ----------
 
-        public void Restore(Note? note)
-        {
-            if (note is null) return;
-
-            History.Remove(note);
-            note.IsOpen = true;
-            note.HistoryAt = null;
-            note.Order = Tabs.Count;
-            note.Modified = DateTime.Now;
-            Tabs.Add(note);
-
-            SetActiveInternal(note);
-            Persist();
-            HistoryChanged?.Invoke();
-            TabsChanged?.Invoke();
-            ActiveChanged?.Invoke();
-        }
-
-        public void RestoreLastClosed()
-        {
-            if (History.Count == 0) return;
-            Restore(History[0]);
-        }
-
+        /// <summary>A library note moved to the trash keeps its text but loses its library place.</summary>
         public void DeleteToTrash(Note? note)
         {
             if (note is null) return;
 
-            try
-            {
-                var payload = JsonSerializer.Serialize(new TrashEntry
-                {
-                    Id = note.Id,
-                    Title = note.Title,
-                    Text = note.Text,
-                    DeletedAt = DateTime.Now
-                }, JsonOptions);
-
-                var name = $"{DateTime.Now:yyyyMMdd-HHmmss}-{note.Id}.json";
-                AppPaths.WriteAtomic(Path.Combine(AppPaths.TrashDir, name), payload);
-            }
-            catch (Exception ex)
-            {
-                Log.Error("trash write failed", ex);
-            }
-
+            WriteTrashEntry(note.Id, note.Title, note.Text, DateTime.Now);
             TryDelete(NotePath(note.Id));
-            History.Remove(note);
+            Library.Remove(note);
             Persist();
-            HistoryChanged?.Invoke();
-        }
-
-        public void ClearHistory()
-        {
-            foreach (var note in History.ToList()) DeleteToTrash(note);
+            LibraryChanged?.Invoke();
+            TrashChanged?.Invoke();
         }
 
         // ---------- trash ----------
-
-        public event Action? TrashChanged;
 
         public List<TrashItem> ReadTrash()
         {
@@ -418,7 +491,9 @@ namespace HideyNotes.Services
 
         public void RestoreFromTrash(TrashItem item)
         {
-            CreateNote(title: item.Title, text: item.Text);
+            // Restored notes behave like fresh ones: closing them sends them back to the trash,
+            // with a fresh 30-day countdown.
+            CreateNote(title: item.Title, text: item.Text, origin: Note.OriginTrash);
             TryDelete(item.FilePath);
             TrashChanged?.Invoke();
         }
@@ -443,26 +518,25 @@ namespace HideyNotes.Services
             TrashChanged?.Invoke();
         }
 
-        /// <summary>History entries live 30 days from the moment the tab was closed.</summary>
-        public void PurgeHistory()
+        private void WriteTrashEntry(string id, string title, string text, DateTime deletedAt)
         {
-            var cutoff = DateTime.Now.AddDays(-30);
-            var changed = false;
-
-            for (var i = History.Count - 1; i >= 0; i--)
+            try
             {
-                var note = History[i];
-                if (note.HistorySince > cutoff) continue;
+                var payload = JsonSerializer.Serialize(new TrashEntry
+                {
+                    Id = id,
+                    Title = title,
+                    Text = text,
+                    DeletedAt = deletedAt
+                }, JsonOptions);
 
-                TryDelete(NotePath(note.Id));
-                History.RemoveAt(i);
-                changed = true;
+                var name = $"{deletedAt:yyyyMMdd-HHmmss}-{id}.json";
+                AppPaths.WriteAtomic(Path.Combine(AppPaths.TrashDir, name), payload);
             }
-
-            if (!changed) return;
-
-            SaveIndex();
-            HistoryChanged?.Invoke();
+            catch (Exception ex)
+            {
+                Log.Error("trash write failed", ex);
+            }
         }
 
         private void PurgeTrash()
@@ -490,7 +564,8 @@ namespace HideyNotes.Services
             Persist();
         }
 
-        public void Rename(Note? note, string title)        {
+        public void Rename(Note? note, string title)
+        {
             if (note is null) return;
 
             var clean = title.Trim();
@@ -501,6 +576,7 @@ namespace HideyNotes.Services
             note.Modified = DateTime.Now;
             Persist();
             TabsChanged?.Invoke();
+            LibraryChanged?.Invoke();
         }
 
         public void Move(Note note, int targetIndex)
@@ -520,32 +596,29 @@ namespace HideyNotes.Services
 
         public string GetText(Note note) => note.Text;
 
-        private void Persist()
-        {
-            SaveIndex();
-        }
+        private void Persist() => SaveIndex();
 
         private void SaveIndex()
         {
             try
             {
+                var notes = new List<NoteMeta>();
+
+                foreach (var n in Tabs)
+                {
+                    notes.Add(ToMeta(n, open: true));
+                }
+
+                foreach (var n in Library)
+                {
+                    notes.Add(ToMeta(n, open: false));
+                }
+
                 var index = new IndexFile
                 {
-                    Version = 1,
+                    Version = IndexVersion,
                     ActiveId = Active?.Id,
-                    Notes = Tabs.Concat(History).Select(n => new NoteMeta
-                    {
-                        Id = n.Id,
-                        Title = n.Title,
-                        Order = n.IsOpen ? Tabs.IndexOf(n) : n.Order,
-                        Created = n.Created,
-                        Modified = n.Modified,
-                        Open = n.IsOpen,
-                        IsHelp = n.IsHelp,
-                        HistoryAt = n.HistoryAt,
-                        SavedPath = n.SavedPath,
-                        SavedAt = n.SavedAt
-                    }).ToList()
+                    Notes = notes
                 };
 
                 AppPaths.WriteAtomic(AppPaths.IndexFile, JsonSerializer.Serialize(index, JsonOptions));
@@ -555,6 +628,22 @@ namespace HideyNotes.Services
                 Log.Error("index save failed", ex);
             }
         }
+
+        private static NoteMeta ToMeta(Note n, bool open) => new()
+        {
+            Id = n.Id,
+            Title = n.Title,
+            Order = n.Order,
+            Created = n.Created,
+            Modified = n.Modified,
+            Open = open,
+            IsHelp = n.IsHelp,
+            Library = !open,
+            Origin = n.Origin,
+            LibraryAt = n.LibraryAt,
+            SavedPath = n.SavedPath,
+            SavedAt = n.SavedAt
+        };
 
         private IndexFile? ReadIndex()
         {
@@ -613,7 +702,7 @@ namespace HideyNotes.Services
             var prefixes = new[] { Loc.T("note.default") + " ", "Заметка " };
             var max = 0;
 
-            foreach (var note in Tabs.Concat(History))
+            foreach (var note in Tabs.Concat(Library))
             {
                 var title = note.Title.Trim();
                 foreach (var prefix in prefixes)
@@ -626,7 +715,7 @@ namespace HideyNotes.Services
             return Loc.F("note.numbered", Math.Max(max + 1, Tabs.Count + 1));
         }
 
-        private Note? FindById(string id) => Tabs.Concat(History).FirstOrDefault(n => n.Id == id);
+        private Note? FindById(string id) => Tabs.Concat(Library).FirstOrDefault(n => n.Id == id);
 
         private static string NotePath(string id) => Path.Combine(AppPaths.NotesDir, id + ".txt");
 
@@ -642,13 +731,10 @@ namespace HideyNotes.Services
             }
         }
 
-        private void SortHistory() =>
-            History.Sort((a, b) => b.Modified.CompareTo(a.Modified));
+        private void SortLibrary() =>
+            Library.Sort((a, b) => (b.LibraryAt ?? b.Modified).CompareTo(a.LibraryAt ?? a.Modified));
 
-        private static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions
-        {
-            WriteIndented = true
-        };
+        private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
 
         private sealed class IndexFile
         {
@@ -665,8 +751,19 @@ namespace HideyNotes.Services
             public DateTime Created { get; set; }
             public DateTime Modified { get; set; }
             public bool Open { get; set; }
+
+            /// <summary>Version 2: the note sits in the library.</summary>
+            public bool Library { get; set; }
+
+            /// <summary>Version 2: none, library or trash.</summary>
+            public string Origin { get; set; } = string.Empty;
+
+            public DateTime? LibraryAt { get; set; }
             public bool IsHelp { get; set; }
+
+            /// <summary>Version 1 kept closed notes in a history list; read only for the migration.</summary>
             public DateTime? HistoryAt { get; set; }
+
             public string? SavedPath { get; set; }
             public DateTime? SavedAt { get; set; }
         }

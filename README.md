@@ -9,7 +9,7 @@ Windows 10/11 · x64 · portable, no installer · no admin rights · MIT license
 
 <p align="center"><img src="docs/demo.gif" width="720" alt="The panel slides out from the screen edge"></p>
 
-<p align="center"><img src="docs/history.png" width="360" alt="History and trash window"></p>
+<p align="center"><img src="docs/library.png" width="360" alt="Library and trash window"></p>
 
 ---
 
@@ -37,8 +37,7 @@ to keep the panel open), so it never gets in the way of other windows.
   paired with *Microsoft Print to PDF* it doubles as a PDF export.
 - **Search** inside the current note or across all tabs (`Ctrl+F`), with highlighting and a tab
   filter — and tab navigation follows the filtered tabs.
-- **History and trash.** Closed tabs can be restored, moved to the trash or deleted; both lists
-  keep notes for 30 days and highlight the last three. The history window has its own search.
+- **Library and trash.** A note you want to keep goes to the library, where it stays for good; everything taken off the tabs waits in the trash for 30 days. Both lists have their own search.
 - **Multi-monitor and per-monitor DPI.** The panel can follow the cursor or be pinned to a
   specific monitor and it adapts to that monitor's scaling.
 - **Global hotkey** (`Ctrl+Shift+Space` by default, can be disabled).
@@ -74,8 +73,8 @@ Windows refuses the tray icon, HideyNotes falls back to a normal taskbar window.
 | `Alt+P` | settings window; press again to close it |
 | `Ctrl+Shift+P` | pin / unpin the panel (the same as the header button) |
 | `Ctrl+T` | new tab |
-| `Ctrl+W` | close the tab (it goes to history) |
-| `Ctrl+Shift+W` | close and forget (no history) |
+| `Ctrl+W` | take the note off the tabs: a library note goes back to the library, the rest to the trash |
+| `Ctrl+Shift+L` | file the note into the library |
 | `Ctrl+Shift+T` | reopen the last closed tab |
 | `Ctrl+Tab` / `Ctrl+Shift+Tab` | next / previous tab |
 | `Ctrl+1…9` | jump to a tab by number |
@@ -83,8 +82,8 @@ Windows refuses the tray icon, HideyNotes falls back to a normal taskbar window.
 | `F2` or double click | rename the tab |
 | `Ctrl+F` | search the current note; `Enter` / `F3` next match, `Shift+F3` previous; `Esc` closes the search |
 | `Ctrl+Shift+F` | search every tab; with the search open the other shortcut switches the scope |
-| `Ctrl+H` | history window; press again to close it |
-| `Ctrl+F` in the history window | search closed notes and the trash |
+| `Ctrl+H` | library and trash window; press again to close it |
+| `Ctrl+F` in that window | search the library and the trash |
 | `Ctrl+Click` on a link | open it in the default browser |
 | `Ctrl+S` | save the note as `.txt` (dialog) |
 | `F1` | built-in help page |
@@ -144,9 +143,9 @@ By default everything is in `%LOCALAPPDATA%\HideyNotes\`:
 | Path | Contents |
 | --- | --- |
 | `settings.json` | all settings, including the chosen language |
-| `index.json` | tab order, active tab, history metadata |
+| `index.json` | tab order, active tab, library metadata |
 | `notes\<id>.txt` | the notes themselves — one plain text file per note |
-| `trash\*.json` | notes deleted from history (kept 30 days) |
+| `trash\*.json` | notes removed from the tabs or the library (kept 30 days) |
 | `lang\*.json` | extra interface languages |
 | `log.txt` | errors only; the full diagnostic log is written when `HIDEYNOTES_LOG=1` is set |
 
@@ -209,8 +208,7 @@ HideyNotes — лёгкий блокнот для быстрых мыслей, �
   с драйвером *Microsoft Print to PDF* это ещё и экспорт в PDF.
 - **Поиск** по текущей заметке или по всем вкладкам (`Ctrl+F`) с подсветкой и фильтром вкладок;
   переключение вкладок при этом ходит только по видимым.
-- **История и корзина.** Закрытые вкладки можно вернуть, убрать в корзину или удалить; в обоих
-  списках заметки живут 30 дней, последние три дня помечаются предупреждением. В окне истории
+- **Библиотека и корзина.** Заметка, которую нужно сохранить, уходит в библиотеку и лежит там постоянно; всё, что убрано с вкладок, ждёт в корзине 30 дней. У обоих списков свой поиск.
   есть свой поиск.
 - **Мультимониторность и разный DPI.** Панель может следовать за курсором или быть закреплённой
   за конкретным экраном и подстраивается под его масштаб.
@@ -246,8 +244,8 @@ HideyNotes откатывается в обычное окно с кнопкой
 | `Alt+P` | окно настроек; повторное нажатие закрывает |
 | `Ctrl+Shift+P` | закрепить / открепить панель (то же, что кнопка в шапке) |
 | `Ctrl+T` | новая вкладка |
-| `Ctrl+W` | закрыть вкладку (уходит в историю) |
-| `Ctrl+Shift+W` | закрыть и забыть (без истории) |
+| `Ctrl+W` | убрать заметку с вкладок: библиотечная вернётся в библиотеку, остальные — в корзину |
+| `Ctrl+Shift+L` | отложить заметку в библиотеку |
 | `Ctrl+Shift+T` | вернуть последнюю закрытую |
 | `Ctrl+Tab` / `Ctrl+Shift+Tab` | следующая / предыдущая вкладка |
 | `Ctrl+1…9` | перейти к вкладке по номеру |
@@ -255,8 +253,8 @@ HideyNotes откатывается в обычное окно с кнопкой
 | `F2` или двойной клик | переименовать вкладку |
 | `Ctrl+F` | поиск в текущей заметке; `Enter` / `F3` — следующее совпадение, `Shift+F3` — предыдущее, `Esc` — закрыть |
 | `Ctrl+Shift+F` | поиск по всем заметкам; при открытом поиске другая комбинация переключает область |
-| `Ctrl+H` | окно истории; повторное нажатие закрывает |
-| `Ctrl+F` в окне истории | поиск по закрытым заметкам и корзине |
+| `Ctrl+H` | окно библиотеки и корзины; повторное нажатие закрывает |
+| `Ctrl+F` в этом окне | поиск по библиотеке и корзине |
 | `Ctrl+клик` по ссылке | открыть её в браузере |
 | `Ctrl+S` | сохранить заметку в `.txt` (диалог) |
 | `F1` | встроенная справка |
@@ -318,9 +316,9 @@ HideyNotes откатывается в обычное окно с кнопкой
 | Путь | Что внутри |
 | --- | --- |
 | `settings.json` | все настройки, включая выбранный язык |
-| `index.json` | порядок вкладок, активная вкладка, метаданные истории |
+| `index.json` | порядок вкладок, активная вкладка, метаданные библиотеки |
 | `notes\<id>.txt` | сами заметки — один обычный текстовый файл на заметку |
-| `trash\*.json` | заметки, удалённые из истории (хранятся 30 дней) |
+| `trash\*.json` | заметки, убранные с вкладок или из библиотеки (хранятся 30 дней) |
 | `lang\*.json` | дополнительные языки интерфейса |
 | `log.txt` | только ошибки; полный диагностический лог пишется, если задать `HIDEYNOTES_LOG=1` |
 
@@ -355,3 +353,5 @@ dotnet publish HideyNotes.csproj -c Release -r win-x64 --self-contained true ^
 MIT — см. [LICENSE](LICENSE).
 
 <sub><i>Сгенерировано с любовью, под моим чутким руководством.</i></sub>
+
+
