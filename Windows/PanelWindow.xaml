@@ -113,7 +113,7 @@
                                 <DataTemplate DataType="{x:Type models:Note}">
                                     <Border x:Name="TabRoot"
                                             Margin="0,0,4,0"
-                                            Padding="10,5,6,5"
+                                            Padding="10,5,10,5"
                                             CornerRadius="8"
                                             Background="Transparent"
                                             Cursor="Hand"
@@ -203,7 +203,7 @@
                                 Grid.Row="1"
                                 Grid.ColumnSpan="2"
                                 Orientation="Horizontal"
-                                Margin="2,3,0,0">
+                                Margin="8,7,0,4">
                         <Button x:Name="FileToLibraryButton"
                                 Style="{StaticResource BarButton}"
                                 Click="OnFileToLibraryClick" />
