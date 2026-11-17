@@ -46,9 +46,11 @@
                                 Style="{StaticResource IconButton}"
                                 Content="&#xE721;"
                                 Margin="0,0,2,0"
+                                ToolTip="{DynamicResource Loc.hist.tip.search}"
                                 Click="OnSearchClick" />
                         <Button Style="{StaticResource IconButton}"
                                 Content="&#xE711;"
+                                ToolTip="{DynamicResource Loc.hist.tip.close}"
                                 Click="OnCloseClick" />
                     </StackPanel>
                 </Grid>

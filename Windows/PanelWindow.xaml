@@ -67,6 +67,7 @@
                         <Button x:Name="SaveButton"
                                 Style="{StaticResource IconButton}"
                                 Content="&#xE74E;"
+                                ToolTip="{DynamicResource Loc.panel.tip.save}"
                                 Click="OnSaveClick" />
                         <Button x:Name="LibraryButton"
                                 Style="{StaticResource IconButton}"
@@ -76,14 +77,17 @@
                         <Button x:Name="SettingsButton"
                                 Style="{StaticResource IconButton}"
                                 Content="&#xE713;"
+                                ToolTip="{DynamicResource Loc.panel.tip.settings}"
                                 Click="OnSettingsClick" />
                         <Button x:Name="HelpButton"
                                 Style="{StaticResource IconButton}"
                                 Content="&#xE897;"
+                                ToolTip="{DynamicResource Loc.panel.tip.help}"
                                 Click="OnHelpClick" />
                         <Button x:Name="HideButton"
                                 Style="{StaticResource IconButton}"
                                 Content="&#xE711;"
+                                ToolTip="{DynamicResource Loc.panel.tip.hide}"
                                 Click="OnHideClick" />
                     </StackPanel>
                 </Grid>
@@ -524,4 +528,5 @@
         </Grid>
     </Grid>
 </Window>
+
 

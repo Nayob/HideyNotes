@@ -220,13 +220,10 @@ namespace HideyNotes.Windows
                 var has = TrashList.SelectedItem is TrashItem;
                 TrashRestoreButton.IsEnabled = has;
                 TrashDeleteButton.IsEnabled = has;
-                TrashRestoreButton.Opacity = has ? 1 : 0.45;
-                TrashDeleteButton.Opacity = has ? 1 : 0.45;
 
                 // Clearing is a whole-list action: do not offer it while the list is filtered.
                 var canClear = TrashList.Items.Count > 0 && !Searching;
                 ClearButton.IsEnabled = canClear;
-                ClearButton.Opacity = canClear ? 1 : 0.45;
                 ClearButton.ToolTip = Searching ? Loc.T("hist.clearDisabled") : null;
                 return;
             }
@@ -234,8 +231,6 @@ namespace HideyNotes.Windows
             var hasLibrary = LibraryList.SelectedItem is Note;
             OpenButton.IsEnabled = hasLibrary;
             LibraryTrashButton.IsEnabled = hasLibrary;
-            OpenButton.Opacity = hasLibrary ? 1 : 0.45;
-            LibraryTrashButton.Opacity = hasLibrary ? 1 : 0.45;
         }
 
         private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -366,3 +361,4 @@ namespace HideyNotes.Windows
         }
     }
 }
+
