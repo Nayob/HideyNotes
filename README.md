@@ -37,7 +37,7 @@ to keep the panel open), so it never gets in the way of other windows.
   paired with *Microsoft Print to PDF* it doubles as a PDF export.
 - **Search** inside the current note or across all tabs (`Ctrl+F`), with highlighting and a tab
   filter — and tab navigation follows the filtered tabs.
-- **Library and trash.** A note you want to keep goes to the library, where it stays for good; everything taken off the tabs waits in the trash for 30 days. Both lists have their own search.
+- **Library and trash.** A note you want to keep goes to the library, where it stays for good; everything taken off the tabs waits in the trash for 30 days. Both lists have their own search. The two buttons for this sit in the status line, next to the confirmation message.
 - **Multi-monitor and per-monitor DPI.** The panel can follow the cursor or be pinned to a
   specific monitor and it adapts to that monitor's scaling.
 - **Global hotkey** (`Ctrl+Shift+Space` by default, can be disabled).
@@ -208,7 +208,7 @@ HideyNotes — лёгкий блокнот для быстрых мыслей, �
   с драйвером *Microsoft Print to PDF* это ещё и экспорт в PDF.
 - **Поиск** по текущей заметке или по всем вкладкам (`Ctrl+F`) с подсветкой и фильтром вкладок;
   переключение вкладок при этом ходит только по видимым.
-- **Библиотека и корзина.** Заметка, которую нужно сохранить, уходит в библиотеку и лежит там постоянно; всё, что убрано с вкладок, ждёт в корзине 30 дней. У обоих списков свой поиск.
+- **Библиотека и корзина.** Заметка, которую нужно сохранить, уходит в библиотеку и лежит там постоянно; всё, что убрано с вкладок, ждёт в корзине 30 дней. У обоих списков свой поиск. Две кнопки для этого стоят в строке статуса, рядом с сообщением о действии.
   есть свой поиск.
 - **Мультимониторность и разный DPI.** Панель может следовать за курсором или быть закреплённой
   за конкретным экраном и подстраивается под его масштаб.
@@ -353,5 +353,6 @@ dotnet publish HideyNotes.csproj -c Release -r win-x64 --self-contained true ^
 MIT — см. [LICENSE](LICENSE).
 
 <sub><i>Сгенерировано с любовью, под моим чутким руководством.</i></sub>
+
 
 
