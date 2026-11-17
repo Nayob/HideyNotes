@@ -93,10 +93,6 @@
                 </Grid>
 
                 <Grid Grid.Row="1" Margin="12,4,12,4">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
@@ -202,21 +198,6 @@
                             Content="&#xE710;"
                             Style="{StaticResource TabAddButton}"
                             Click="OnNewTabClick" />
-
-                    <StackPanel x:Name="TabActions"
-                                Grid.Row="1"
-                                Grid.ColumnSpan="2"
-                                Orientation="Horizontal"
-                                Margin="8,7,0,4">
-                        <Button x:Name="FileToLibraryButton"
-                                Style="{StaticResource BarButton}"
-                                Click="OnFileToLibraryClick" />
-                        <Button x:Name="SendToTrashButton"
-                                Style="{StaticResource BarButton}"
-                                Content="{DynamicResource Loc.panel.action.trash}"
-                                Margin="14,0,0,0"
-                                Click="OnSendToTrashClick" />
-                    </StackPanel>
                 </Grid>
 
                 <Border x:Name="SearchBar"
@@ -299,8 +280,58 @@
                              FontFamily="Segoe UI"
                              FontSize="15" />
 
-                <Grid Grid.Row="4" Margin="18,2,16,8">
-                    <TextBlock x:Name="StatusText" FontSize="11" Foreground="{DynamicResource MutedBrush}" />
+                <Grid Grid.Row="4" Margin="18,3,12,6">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock x:Name="StatusText"
+                               Grid.Column="0"
+                               FontSize="11"
+                               Foreground="{DynamicResource MutedBrush}"
+                               VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis" />
+
+                    <!-- The note actions sit next to the status message on purpose: the eye stays in
+                         one place, and they are far away from the tabs where a mis-click would land. -->
+                    <StackPanel Grid.Column="1"
+                                Orientation="Horizontal"
+                                VerticalAlignment="Center"
+                                Margin="10,0,0,0">
+                        <Button x:Name="FileToLibraryButton"
+                                Style="{StaticResource BarButton}"
+                                ToolTip="{DynamicResource Loc.panel.action.library}"
+                                Click="OnFileToLibraryClick">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE8F1;"
+                                           FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                           FontSize="11"
+                                           VerticalAlignment="Center" />
+                                <TextBlock x:Name="LibraryActionLabel"
+                                           Margin="5,0,0,0"
+                                           FontSize="11"
+                                           VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+                        <Button x:Name="SendToTrashButton"
+                                Style="{StaticResource BarButton}"
+                                ToolTip="{DynamicResource Loc.panel.action.trash}"
+                                Margin="12,0,0,0"
+                                Click="OnSendToTrashClick">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE74D;"
+                                           FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                           FontSize="11"
+                                           VerticalAlignment="Center" />
+                                <TextBlock x:Name="TrashActionLabel"
+                                           Text="{DynamicResource Loc.panel.action.trash}"
+                                           Margin="5,0,0,0"
+                                           FontSize="11"
+                                           VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
                 </Grid>
             </Grid>
         </Border>

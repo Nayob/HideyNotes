@@ -330,7 +330,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Border x:Name="B" CornerRadius="5" Padding="4,2" Background="{TemplateBinding Background}">
+                    <Border x:Name="B" CornerRadius="5" Padding="6,4" Background="{TemplateBinding Background}">
                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Border>
                     <ControlTemplate.Triggers>

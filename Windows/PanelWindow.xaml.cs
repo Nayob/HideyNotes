@@ -104,6 +104,7 @@ namespace HideyNotes.Windows
             Deactivated += (_, _) => App.Current.Controller?.NotifyPanelDeactivated();
             PreviewKeyDown += OnPreviewKeyDown;
             Closing += OnWindowClosing;
+            SizeChanged += (_, _) => UpdateActionLabels();
             Loaded += (_, _) => ScrollActiveTabIntoView();
 
             Editor.TextChanged += OnEditorTextChanged;
@@ -801,7 +802,7 @@ namespace HideyNotes.Windows
         private void OnNewTabClick(object sender, RoutedEventArgs e) => Store.CreateNote();
 
         /// <summary>
-        /// The action bar under the tabs says exactly what will happen: closing a library note
+        /// The action bar in the status line says exactly what will happen: closing a library note
         /// puts it back into the library, every other note goes to the trash.
         /// </summary>
         private void UpdateTabActions()
@@ -819,7 +820,20 @@ namespace HideyNotes.Windows
             SendToTrashButton.Visibility = Visibility.Visible;
 
             var key = note.IsLibrary ? "panel.action.return" : "panel.action.library";
-            FileToLibraryButton.Content = Loc.T(key);
+            LibraryActionLabel.Text = Loc.T(key);
+            FileToLibraryButton.ToolTip = Loc.T(key);
+
+            UpdateActionLabels();
+        }
+
+        /// <summary>On a narrow panel the captions give way to the icons, which keep their tooltips.</summary>
+        private void UpdateActionLabels()
+        {
+            var show = ActualWidth >= 420;
+            var visibility = show ? Visibility.Visible : Visibility.Collapsed;
+
+            if (LibraryActionLabel is not null) LibraryActionLabel.Visibility = visibility;
+            if (TrashActionLabel is not null) TrashActionLabel.Visibility = visibility;
         }
 
         private void OnFileToLibraryClick(object sender, RoutedEventArgs e)
