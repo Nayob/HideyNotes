@@ -122,6 +122,15 @@
                                             MouseMove="OnTabMouseMove"
                                             MouseLeftButtonUp="OnTabMouseUp">
                                         <StackPanel Orientation="Horizontal">
+                                            <TextBlock x:Name="TabBook"
+                                                       Text="&#xE8F1;"
+                                                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                                       FontSize="10"
+                                                       Margin="0,0,5,0"
+                                                       VerticalAlignment="Center"
+                                                       Visibility="Collapsed"
+                                                       Foreground="{DynamicResource MutedBrush}"
+                                                       ToolTip="{DynamicResource Loc.panel.tab.library}" />
                                             <Grid>
                                                 <TextBlock x:Name="TabTitle"
                                                            Text="{Binding Title}"
@@ -142,15 +151,6 @@
                                                          KeyDown="OnTabEditKeyDown"
                                                          LostFocus="OnTabEditLostFocus" />
                                             </Grid>
-                                            <TextBlock x:Name="TabBook"
-                                                       Text="&#xE8F1;"
-                                                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                                                       FontSize="10"
-                                                       Margin="5,0,0,0"
-                                                       VerticalAlignment="Center"
-                                                       Visibility="Collapsed"
-                                                       Foreground="{DynamicResource MutedBrush}"
-                                                       ToolTip="{DynamicResource Loc.panel.tab.library}" />
                                             <Border x:Name="TabBadge"
                                                     Background="{DynamicResource AccentSoftBrush}"
                                                     CornerRadius="7"
